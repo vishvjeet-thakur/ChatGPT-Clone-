@@ -1,0 +1,172 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useChat } from "@/components/chat-provider"
+import {
+  PenSquare,
+  Search,
+  BookOpen,
+  Play,
+  Grid3X3,
+  MessageSquare,
+  MoreHorizontal,
+  Trash2,
+  Edit3,
+  Crown,
+  PanelLeftClose,
+  Sparkles,
+} from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+
+interface SidebarProps {
+  isOpen: boolean
+  onToggle: () => void
+}
+
+export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+  const { chats, currentChatId, createNewChat, selectChat, deleteChat } = useChat()
+  const [editingId, setEditingId] = useState<string | null>(null)
+
+  if (!isOpen) return null
+
+  return (
+    <div className="w-64 flex flex-col h-full bg-gray-50 dark:bg-gray-900" style={{ backgroundColor: "rgb(22,22,23)" }}>
+      {/* Header */}
+      <div className="p-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center">
+            <Sparkles size={14} className="text-gray-900" />
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggle}
+          className="p-1 h-6 w-6 text-gray-400 hover:text-white hover:bg-gray-700"
+        >
+          <PanelLeftClose size={16} />
+        </Button>
+      </div>
+
+      {/* Main Navigation */}
+      <div className="p-3 space-y-1">
+        <Button
+          onClick={createNewChat}
+          className="w-full bg-transparent hover:bg-gray-700 text-white justify-start gap-3 h-10 px-3 border-0"
+        >
+          <PenSquare size={16} className="text-white" />
+          <span className="text-white">New chat</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+        >
+          <Search size={16} className="text-gray-300" />
+          <span className="text-gray-300">Search chats</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+        >
+          <BookOpen size={16} className="text-gray-300" />
+          <span className="text-gray-300">Library</span>
+        </Button>
+      </div>
+
+      {/* Secondary Navigation */}
+      <div className="px-3 py-2">
+        <Button
+          variant="ghost"
+          className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+        >
+          <Play size={16} className="text-gray-300" />
+          <span className="text-gray-300">Sora</span>
+        </Button>
+
+        <Button
+          variant="ghost"
+          className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+        >
+          <Grid3X3 size={16} className="text-gray-300" />
+          <span className="text-gray-300">GPTs</span>
+        </Button>
+      </div>
+
+      {/* Chat History */}
+      <div className="flex-1 px-3">
+        <div className="py-3">
+          <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Chats</h3>
+          <ScrollArea className="h-full">
+            <div className="space-y-1">
+              {chats.length === 0 ? (
+                <div className="text-gray-500 text-sm py-4 text-center">No chats yet</div>
+              ) : (
+                chats.map((chat) => (
+                  <div
+                    key={chat.id}
+                    className={`group flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-gray-700 ${
+                      currentChatId === chat.id ? "bg-gray-700" : ""
+                    }`}
+                    onClick={() => selectChat(chat.id)}
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <MessageSquare size={14} className="flex-shrink-0 text-gray-400" />
+                      <span className="truncate text-gray-200">{chat.title}</span>
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-600"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal size={12} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-32 bg-gray-800 border-gray-600">
+                        <DropdownMenuItem
+                          onClick={() => setEditingId(chat.id)}
+                          className="text-gray-200 focus:bg-gray-700 focus:text-white"
+                        >
+                          <Edit3 size={12} className="mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => deleteChat(chat.id)}
+                          className="text-red-400 focus:bg-red-600 focus:text-white"
+                        >
+                          <Trash2 size={12} className="mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+      </div>
+
+      {/* Upgrade Plan Footer */}
+      <div className="p-3">
+        <Button
+          variant="ghost"
+          className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+        >
+          <Crown size={16} className="text-gray-300" />
+          <div className="flex flex-col items-start">
+            <span className="text-sm text-gray-300">Upgrade plan</span>
+            <span className="text-xs text-gray-500">More access to the best models</span>
+          </div>
+        </Button>
+      </div>
+    </div>
+  )
+}
