@@ -67,19 +67,19 @@ export function Message({ message, isLoading }: MessageProps) {
 
   return (
     <div className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
-      {message.role === "assistant" && (
+      {/* {message.role === "assistant" && (
         <Avatar className="w-8 h-8 bg-green-500">
           <AvatarFallback className="bg-green-500 text-white text-sm">AI</AvatarFallback>
         </Avatar>
-      )}
+      )} */}
 
       <div className={`flex-1 max-w-3xl ${message.role === "user" ? "order-first" : ""}`}>
         <div
-          className={`rounded-lg p-4 ${
-            message.role === "user" ? "bg-blue-500 text-white ml-auto max-w-lg" : "text-white"
+          className={` ${
+            message.role === "user" ? " text-white ml-auto max-w-lg rounded-3xl p-2 pl-5 " : "text-white p-2"
           }`}
           style={{
-            backgroundColor: message.role === "assistant" ? "rgb(52,52,52)" : undefined,
+            backgroundColor: message.role === "assistant" ? "rgb(32,32,33)" : "rgb(49,48,49)",
           }}
         >
           {isLoading ? (
@@ -97,7 +97,7 @@ export function Message({ message, isLoading }: MessageProps) {
               </div>
             </div>
           ) : (
-            <div className="prose prose-sm max-w-none">{formatContent(message.content)}</div>
+            <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2">{formatContent(message.content)}</div>
           )}
         </div>
 
@@ -125,11 +125,11 @@ export function Message({ message, isLoading }: MessageProps) {
         )}
       </div>
 
-      {message.role === "user" && (
+      {/* {message.role === "user" && (
         <Avatar className="w-8 h-8 bg-blue-500">
           <AvatarFallback className="bg-blue-500 text-white text-sm">U</AvatarFallback>
         </Avatar>
-      )}
+      )} */}
     </div>
   )
 }

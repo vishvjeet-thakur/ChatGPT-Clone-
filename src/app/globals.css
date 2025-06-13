@@ -152,7 +152,8 @@ body {
 }
 
 .prose p {
-  margin-bottom: 1em;
+  margin-bottom: 0.1em;
+  line-height: 1.4;
 }
 
 .prose p:last-child {
@@ -168,6 +169,8 @@ body {
   color: inherit;
   font-weight: 600;
   line-height: 1.25;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
 }
 
 .prose h1 {
@@ -184,7 +187,7 @@ body {
 
 .prose ul,
 .prose ol {
-  margin: 1em 0;
+  margin: 0.5em 0;
   padding-left: 1.5em;
 }
 

@@ -32,7 +32,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
   }, [input]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-1 pb-3 ">
+    <div className="w-full max-w-3xl mx-auto  pb-3 ">
       <form 
         onSubmit={onSubmit}
         className="w-full  rounded-3xl p-2 flex flex-col"
