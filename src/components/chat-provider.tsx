@@ -19,8 +19,9 @@ interface ChatContextType {
   createNewChat: () => void
   selectChat: (id: string) => void
   deleteChat: (id: string) => void
-  addMessage: (content: string, role: "user" | "assistant") => void
+  addMessage: (content: string, role: "user" | "assistant") => string
   getCurrentChat: () => Chat | null
+  setMessage: (messageId: string, content: string) => void
 }
 
 const ChatContext = createContext<ChatContextType | null>(null)
@@ -29,9 +30,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
 
+  const generateUniqueId = () => {
+    const timestamp = Date.now()
+    const random = Math.random().toString(36).substring(2, 8)
+    return `${timestamp}-${random}`
+  }
+
   const createNewChat = () => {
     const newChat: Chat = {
-      id: Date.now().toString(),
+      id: generateUniqueId(),
       title: "New chat",
       messages: [],
     }
@@ -51,10 +58,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const addMessage = (content: string, role: "user" | "assistant") => {
-    if (!currentChatId) return
+    if (!currentChatId) return ""
 
+    const messageId = generateUniqueId()
     const newMessage = {
-      id: Date.now().toString(),
+      id: messageId,
       role,
       content,
       timestamp: new Date(),
@@ -78,10 +86,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         return chat
       }),
     )
+
+    return messageId
   }
 
   const getCurrentChat = () => {
     return chats.find((chat) => chat.id === currentChatId) || null
+  }
+
+  const setMessage = (messageId: string, content: string) => {
+    setChats((prev) =>
+      prev.map((chat) => ({
+        ...chat,
+        messages: chat.messages.map((msg) =>
+          msg.id === messageId ? { ...msg, content } : msg
+        ),
+      }))
+    )
   }
 
   return (
@@ -94,6 +115,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         deleteChat,
         addMessage,
         getCurrentChat,
+        setMessage,
       }}
     >
       {children}

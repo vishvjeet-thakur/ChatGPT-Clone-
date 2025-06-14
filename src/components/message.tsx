@@ -1,9 +1,15 @@
 "use client"
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react"
 import { useState } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import rehypeRaw from "rehype-raw"
+import rehypeSanitize from "rehype-sanitize"
+import rehypeHighlight from "rehype-highlight"
+import type { Components } from "react-markdown"
+import "highlight.js/styles/github-dark.css"
 
 interface MessageProps {
   message: {
@@ -24,59 +30,86 @@ export function Message({ message, isLoading }: MessageProps) {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const formatContent = (content: string) => {
-    // Simple markdown-like formatting
-    return content
-      .split("\n")
-      .map((line, index) => {
-        if (line.startsWith("```")) {
-          return null // Handle code blocks separately
-        }
-        if (line.startsWith("# ")) {
-          return (
-            <h1 key={index} className="text-xl font-bold mt-4 mb-2 text-white">
-              {line.slice(2)}
-            </h1>
-          )
-        }
-        if (line.startsWith("## ")) {
-          return (
-            <h2 key={index} className="text-lg font-bold mt-3 mb-2 text-white">
-              {line.slice(3)}
-            </h2>
-          )
-        }
-        if (line.startsWith("- ")) {
-          return (
-            <li key={index} className="ml-4 text-white">
-              {line.slice(2)}
-            </li>
-          )
-        }
-        if (line.trim() === "") {
-          return <br key={index} />
-        }
-        return (
-          <p key={index} className="mb-2 text-white">
-            {line}
-          </p>
-        )
-      })
-      .filter(Boolean)
+  const components: Components = {
+    pre: ({ node, ...props }) => (
+      <div className="relative">
+        <pre
+          className="mt-2 mb-4 overflow-x-auto rounded-lg bg-black p-4 whitespace-pre-wrap"
+          {...props}
+        />
+      </div>
+    ),
+    code: ({ className, children, ...props }: any) => {
+      const match = /language-(\w+)/.exec(className || "")
+      const isInline = !match
+      return isInline ? (
+        <code
+          className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm"
+          {...props}
+        >
+          {children}
+        </code>
+      ) : (
+        <code
+          className={className}
+          {...props}
+        >
+          {children}
+        </code>
+      )
+    },
+    p: ({ node, ...props }) => (
+      <p className="whitespace-pre-wrap my-2" {...props} />
+    ),
+    h1: ({ node, ...props }) => (
+      <h1 className="text-3xl font-bold mt-8 mb-4" {...props} />
+    ),
+    h2: ({ node, ...props }) => (
+      <h2 className="text-2xl font-bold mt-7 mb-3" {...props} />
+    ),
+    h3: ({ node, ...props }) => (
+      <h3 className="text-xl font-bold mt-6 mb-3" {...props} />
+    ),
+    h4: ({ node, ...props }) => (
+      <h4 className="text-lg font-bold mt-5 mb-2" {...props} />
+    ),
+    h5: ({ node, ...props }) => (
+      <h5 className="text-base font-bold mt-4 mb-2" {...props} />
+    ),
+    h6: ({ node, ...props }) => (
+      <h6 className="text-sm font-bold mt-3 mb-2" {...props} />
+    ),
+    ul: ({ node, ...props }) => (
+      <ul className="list-disc pl-6 my-4" {...props} />
+    ),
+    ol: ({ node, ...props }) => (
+      <ol className="list-decimal pl-6 my-4" {...props} />
+    ),
+    blockquote: ({ node, ...props }) => (
+      <blockquote
+        className="border-l-4 border-muted pl-4 italic my-4"
+        {...props}
+      />
+    ),
+    table: ({ node, ...props }) => (
+      <div className="overflow-x-auto my-4">
+        <table className="border-collapse border border-muted" {...props} />
+      </div>
+    ),
+    th: ({ node, ...props }) => (
+      <th className="border border-muted px-4 py-2 bg-muted" {...props} />
+    ),
+    td: ({ node, ...props }) => (
+      <td className="border border-muted px-4 py-2" {...props} />
+    ),
   }
 
   return (
     <div className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
-      {/* {message.role === "assistant" && (
-        <Avatar className="w-8 h-8 bg-green-500">
-          <AvatarFallback className="bg-green-500 text-white text-sm">AI</AvatarFallback>
-        </Avatar>
-      )} */}
-
       <div className={`flex-1 max-w-3xl ${message.role === "user" ? "order-first" : ""}`}>
         <div
-          className={` ${
-            message.role === "user" ? " text-white ml-auto max-w-lg rounded-3xl p-2 pl-5 " : "text-white p-2"
+          className={`${
+            message.role === "user" ? "text-white ml-auto max-w-lg rounded-3xl p-2 pl-5" : "text-white p-2"
           }`}
           style={{
             backgroundColor: message.role === "assistant" ? "rgb(32,32,33)" : "rgb(49,48,49)",
@@ -97,7 +130,19 @@ export function Message({ message, isLoading }: MessageProps) {
               </div>
             </div>
           ) : (
-            <div className="prose prose-sm max-w-none prose-p:my-1 prose-headings:my-2">{formatContent(message.content)}</div>
+            <div className="prose prose-neutral dark:prose-invert max-w-none">
+              <ReactMarkdown
+                remarkPlugins={[[remarkGfm, { breaks: true }]]}
+                rehypePlugins={[
+                  rehypeRaw,
+                  rehypeSanitize,
+                  [rehypeHighlight, { ignoreMissing: true }],
+                ]}
+                components={components}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
 
@@ -124,12 +169,6 @@ export function Message({ message, isLoading }: MessageProps) {
           </div>
         )}
       </div>
-
-      {/* {message.role === "user" && (
-        <Avatar className="w-8 h-8 bg-blue-500">
-          <AvatarFallback className="bg-blue-500 text-white text-sm">U</AvatarFallback>
-        </Avatar>
-      )} */}
     </div>
   )
 }

@@ -1,20 +1,24 @@
-import { openai } from "@ai-sdk/openai"
+import { groq } from "@ai-sdk/groq"
 import { streamText } from "ai"
 
 export async function POST(request: Request) {
   try {
-    const { messages } = await request.json()
+    const { messages, assistantMessageId } = await request.json()
+    console.log("Messages:", messages)
+    console.log("Assistant Message ID:", assistantMessageId)
 
-    const result = await streamText({
-      model: openai("gpt-4o"),
+    const result = streamText({
+      model: groq("llama-3.3-70b-versatile"),
       messages: messages.map((msg: any) => ({
         role: msg.role,
         content: msg.content,
       })),
       system:
         "You are ChatGPT, a helpful AI assistant created by OpenAI. Respond naturally and helpfully to user queries.",
+      temperature: 0.7,
+      maxTokens: 1000,
     })
-
+    
     return result.toTextStreamResponse()
   } catch (error) {
     console.error("Chat API error:", error)

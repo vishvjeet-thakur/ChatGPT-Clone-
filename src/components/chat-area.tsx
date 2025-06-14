@@ -86,7 +86,7 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
-  const { getCurrentChat, addMessage, createNewChat, currentChatId } = useChat();
+  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage } = useChat();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -114,8 +114,12 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    // Add user message
-    addMessage(userMessage, "user");
+    // Add user message and get its ID
+    const userMessageId = addMessage(userMessage, "user");
+    console.log("userMessageId-", userMessageId)
+    
+    // Create empty assistant message and get its ID
+    const assistantMessageId = addMessage("", "assistant");
 
     try {
       const response = await fetch("/api/chat", {
@@ -125,6 +129,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
         },
         body: JSON.stringify({
           messages: [...(getCurrentChat()?.messages || []), { role: "user", content: userMessage }],
+          assistantMessageId,
         }),
       });
 
@@ -144,17 +149,19 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
 
             const chunk = decoder.decode(value, { stream: true });
             assistantMessage += chunk;
+            setMessage(assistantMessageId, assistantMessage);
           }
         } catch (streamError) {
           console.error("Stream reading error:", streamError);
         }
       }
 
-      // Add the complete assistant message
-      addMessage(assistantMessage || "I apologize, but I encountered an error processing your request.", "assistant");
+      if (!assistantMessage) {
+        setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.");
+      }
     } catch (error) {
       console.error("Chat error:", error);
-      addMessage("I apologize, but I encountered an error processing your request. Please try again.", "assistant");
+      setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request. Please try again.");
     } finally {
       setIsLoading(false);
     }
