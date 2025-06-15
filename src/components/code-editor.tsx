@@ -145,7 +145,7 @@ export function CodeEditor({
         <Editor
           height="100%"
           defaultLanguage={mappedLanguage}
-          defaultValue={initialCode}
+          value={initialCode}
           theme="vs-dark"
           onMount={handleEditorDidMount}
           options={{

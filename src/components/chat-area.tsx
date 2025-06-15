@@ -86,7 +86,7 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
-  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage ,isEditorOpen } = useChat();
+  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage ,isEditorOpen , updateChatTitle } = useChat();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -98,6 +98,12 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [currentChat?.messages]);
+
+  useEffect(()=>{
+    if(!currentChat){
+      createNewChat();
+    }
+  },[]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +165,48 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
       if (!assistantMessage) {
         setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.");
       }
+
+      // Generate title if this is one of the first messages
+      if (getCurrentChat()!.messages.length <= 1) {
+        try {
+          const titleResponse = await fetch("/api/generate-title", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messages: [{ role: "user", content: userMessage }],
+            }),
+          });
+
+          if (!titleResponse.ok) {
+            throw new Error(`HTTP error! status: ${titleResponse.status}`);
+          }
+
+          const titleReader = titleResponse.body?.getReader();
+          const titleDecoder = new TextDecoder();
+          let newTitle = "";
+
+          if (titleReader) {
+            try {
+              while (true) {
+                const { done, value } = await titleReader.read();
+                if (done) break;
+
+                const chunk = titleDecoder.decode(value, { stream: true });
+                newTitle += chunk;
+                // Remove quotes and clean up the title
+                const cleanTitle = newTitle.replace(/["']/g, '').trim();
+                updateChatTitle(currentChat!.id, cleanTitle);
+              }
+            } catch (streamError) {
+              console.error("Title streaming error:", streamError);
+            }
+          }
+        } catch (error) {
+          console.error("Title generation error:", error);
+        }
+      }
     } catch (error) {
       console.error("Chat error:", error);
       setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request. Please try again.");
@@ -214,7 +262,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
           <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
             <div className={`space-y-6 py-6 max-w-3xl  ${!isEditorOpen?"w-full mx-auto":"w-1/2"} `}>
               {currentChat.messages.map((message: Message) => (
-                <MessageComponent key={message.id} message={message} onToggleSideBar={onToggleSidebar}  />
+                <MessageComponent key={message.id} message={message} onToggleSideBar={onToggleSidebar} sidebarOpen = {sidebarOpen} />
               ))}
               {isLoading && (
                 <MessageComponent

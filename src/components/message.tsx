@@ -23,9 +23,10 @@ interface MessageProps {
   }
   isLoading?: boolean,
   onToggleSideBar?: () => void;
+  sidebarOpen?: boolean
 }
 
-export function Message({ message, isLoading , onToggleSideBar }: MessageProps) {
+export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: MessageProps) {
   const [copied, setCopied] = useState(false)
   // const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [editingCode, setEditingCode] = useState<{ code: string; language: string } | null>(null)
@@ -82,8 +83,11 @@ export function Message({ message, isLoading , onToggleSideBar }: MessageProps) 
         const code = getTextContent(codeElement);
         const language = match ? match[1] : "text";
         setEditingCode({ code, language });
+        if(sidebarOpen){
+          onToggleSideBar?.();
+        }
         setIsEditorOpen(true);
-        onToggleSideBar?.();
+        
       };
 
       return (

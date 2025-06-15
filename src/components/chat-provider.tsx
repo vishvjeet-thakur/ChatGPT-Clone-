@@ -24,6 +24,7 @@ interface ChatContextType {
   addMessage: (content: string, role: "user" | "assistant") => string
   getCurrentChat: () => Chat | null
   setMessage: (messageId: string, content: string) => void
+  updateChatTitle: (chatId: string, title: string) => void
 }
 
 const ChatContext = createContext<ChatContextType | null>(null)
@@ -47,6 +48,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
     setChats((prev) => [newChat, ...prev])
     setCurrentChatId(newChat.id)
+  }
+
+  const updateChatTitle = (chatId: string, title: string) => {
+    setChats(prevChats => 
+      prevChats.map(chat => 
+        chat.id === chatId ? { ...chat, title } : chat
+      )
+    )
   }
 
   const selectChat = (id: string) => {
@@ -122,6 +131,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         addMessage,
         getCurrentChat,
         setMessage,
+        updateChatTitle,
       }}
     >
       {children}
