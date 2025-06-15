@@ -5,7 +5,7 @@ module.exports = {
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
     "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx,html}",
   ],
   theme: {
     container: {
@@ -21,6 +21,14 @@ module.exports = {
           css: {
             maxWidth: "none",
             color: "inherit",
+            pre: {
+              backgroundColor: "transparent",
+              padding: "0", // remove padding if unwanted
+              borderRadius: "0",
+            },
+            code: {
+              backgroundColor: "transparent",
+            },
             a: {
               color: "inherit",
               textDecoration: "none",

@@ -55,6 +55,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (currentChatId === id) {
       setCurrentChatId(null)
     }
+
   }
 
   const addMessage = (content: string, role: "user" | "assistant") => {

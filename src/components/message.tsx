@@ -1,15 +1,18 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Copy, ThumbsUp, ThumbsDown, RotateCcw } from "lucide-react"
+import { Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit, Check } from "lucide-react"
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import rehypeRaw from "rehype-raw"
 import rehypeSanitize from "rehype-sanitize"
 import rehypeHighlight from "rehype-highlight"
-import type { Components } from "react-markdown"
+import type { Components  } from "react-markdown"
 import "highlight.js/styles/github-dark.css"
+import React from "react"
+
+
 
 interface MessageProps {
   message: {
@@ -31,32 +34,92 @@ export function Message({ message, isLoading }: MessageProps) {
   }
 
   const components: Components = {
-    pre: ({ node, ...props }) => (
-      <div className="relative">
-        <pre
-          className="mt-2 mb-4 overflow-x-auto rounded-lg bg-black p-4 whitespace-pre-wrap"
-          {...props}
-        />
-      </div>
-    ),
-    code: ({ className, children, ...props }: any) => {
-      const match = /language-(\w+)/.exec(className || "")
-      const isInline = !match
-      return isInline ? (
-        <code
-          className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm"
-          {...props}
-        >
+    pre({ node, className, children, ...props }) {
+      const codeElement = React.isValidElement(children) ? children : null;
+      const LangclassName = (codeElement?.props as { className?: string })?.className || "";
+      const [copied, setCopied] = useState(false);
+      
+      const match = /language-(\w+)/.exec(LangclassName || "");
+
+      const getTextContent = (element: React.ReactElement | null): string => {
+        if (!element) return '';
+        const props = element.props as { children?: any };
+        if (typeof props.children === 'string') return props.children;
+        if (Array.isArray(props.children)) {
+          return props.children
+            .map((child: any) => {
+              if (typeof child === 'string') return child;
+              if (React.isValidElement(child)) return getTextContent(child);
+              return '';
+            })
+            .join('');
+        }
+        return '';
+      };
+
+      const handleCopy = () => {
+        const textContent = getTextContent(codeElement);
+        navigator.clipboard.writeText(textContent).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }).catch(console.error);
+      };
+
+      return (
+        <div className="relative my-6 rounded-xl overflow-hidden !bg-[#171616]">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-2 text-xs">
+            <span className="text-gray-100 text-xs tracking-wider">
+              {match ? match[1] : "text"}
+            </span>
+            <div className="flex">
+              <button
+                onClick={handleCopy}
+                className="flex text-gray-100 hover:text-white px-1 py-1 transition text-xs"
+              >
+                {copied ? <Check className="h-[13px]" /> : <Copy className="h-[13px]" />}
+                {copied ? "Copied!" : "Copy"}
+              </button>
+              <button className="flex py-1 px-1 text-xs">
+                <Edit className="h-[13px]" />
+                Edit
+              </button>
+            </div>
+          </div>
+
+          {/* Code Block */}
+          <pre className="overflow-x-auto text-sm text-white m-0 p-0">
+            <code className={`${className} block ${!match ? "px-4 py-2" : ""}`} {...props}>
+              {children}
+            </code>
+          </pre>
+        </div>
+      );
+    },
+  
+    // For inline code
+    code({ node, className, children, ...props }) {
+      // If inside a <pre>, let `pre` handle the styling
+      const isInline = !node?.position?.start || node.position.start.line === node.position.end.line;
+  
+      if (isInline) {
+        return (
+          // <pre className="inline">
+          <code
+            className="rounded bg-[#424242] px-1 py-0.5 font-normal  text-sm text-white"
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
+  
+      // fallback for any edge cases (rare)
+      return (
+        <code className={`${className} !bg-[#171616]`} {...props}>
           {children}
         </code>
-      ) : (
-        <code
-          className={className}
-          {...props}
-        >
-          {children}
-        </code>
-      )
+      );
     },
     p: ({ node, ...props }) => (
       <p className="whitespace-pre-wrap my-2" {...props} />

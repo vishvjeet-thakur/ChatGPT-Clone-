@@ -1,10 +1,19 @@
 /* Base styles */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 *,
 *::before,
 *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+code::before,
+code::after{
+  content: none !important;
 }
 
 /* CSS Variables */
@@ -195,28 +204,28 @@ body {
   margin: 0.25em 0;
 }
 
-.prose code {
+/* .prose code {
   background-color: rgba(0, 0, 0, 0.1);
   padding: 0.125em 0.25em;
   border-radius: 0.25em;
   font-size: 0.875em;
-}
+} */
 
-.dark .prose code {
+/* .dark .prose code {
   background-color: rgba(255, 255, 255, 0.1);
-}
+} */
 
-.prose pre {
+/* .prose pre {
   background-color: rgba(0, 0, 0, 0.05);
   padding: 1em;
   border-radius: 0.5em;
   overflow-x: auto;
   margin: 1em 0;
-}
+} */
 
-.dark .prose pre {
+/* .dark .prose pre {
   background-color: rgba(255, 255, 255, 0.05);
-}
+} */
 
 .prose blockquote {
   border-left: 4px solid rgba(0, 0, 0, 0.1);
