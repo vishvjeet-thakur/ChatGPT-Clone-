@@ -11,8 +11,8 @@ import rehypeHighlight from "rehype-highlight"
 import type { Components  } from "react-markdown"
 import "highlight.js/styles/github-dark.css"
 import React from "react"
-
-
+import { CodeEditor } from "@/components/code-editor"
+import { useChat } from "@/components/chat-provider"
 
 interface MessageProps {
   message: {
@@ -26,11 +26,23 @@ interface MessageProps {
 
 export function Message({ message, isLoading }: MessageProps) {
   const [copied, setCopied] = useState(false)
+  const [isEditorOpen, setIsEditorOpen] = useState(false)
+  const [editingCode, setEditingCode] = useState<{ code: string; language: string } | null>(null)
+  const { setMessage } = useChat()
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(message.content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleSaveCode = (newCode: string) => {
+    if (editingCode) {
+      // Replace the code block in the message content
+      const codeBlockRegex = new RegExp(`\`\`\`${editingCode.language}\\n[\\s\\S]*?\`\`\``)
+      const newContent = message.content.replace(codeBlockRegex, `\`\`\`${editingCode.language}\n${newCode}\`\`\``)
+      setMessage(message.id, newContent)
+    }
   }
 
   const components: Components = {
@@ -65,6 +77,13 @@ export function Message({ message, isLoading }: MessageProps) {
         }).catch(console.error);
       };
 
+      const handleEdit = () => {
+        const code = getTextContent(codeElement);
+        const language = match ? match[1] : "text";
+        setEditingCode({ code, language });
+        setIsEditorOpen(true);
+      };
+
       return (
         <div className="relative my-6 rounded-xl overflow-hidden !bg-[#171616]">
           {/* Header */}
@@ -80,7 +99,10 @@ export function Message({ message, isLoading }: MessageProps) {
                 {copied ? <Check className="h-[13px]" /> : <Copy className="h-[13px]" />}
                 {copied ? "Copied!" : "Copy"}
               </button>
-              <button className="flex py-1 px-1 text-xs">
+              <button 
+                onClick={handleEdit}
+                className="flex py-1 px-1 text-xs text-gray-100 hover:text-white transition"
+              >
                 <Edit className="h-[13px]" />
                 Edit
               </button>
@@ -232,6 +254,19 @@ export function Message({ message, isLoading }: MessageProps) {
           </div>
         )}
       </div>
+
+      {isEditorOpen && editingCode && (
+        <CodeEditor
+          isOpen={isEditorOpen}
+          onClose={() => {
+            setIsEditorOpen(false);
+            setEditingCode(null);
+          }}
+          initialCode={editingCode.code}
+          onSave={() => {}}
+          language={editingCode.language}
+        />
+      )}
     </div>
   )
 }
