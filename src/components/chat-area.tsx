@@ -21,7 +21,7 @@ interface ChatInputProps {
 
 const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
+  const {isEditorOpen} = useChat();
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -32,7 +32,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
   }, [input]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto  pb-3 ">
+    <div className={` max-w-3xl ${!isEditorOpen?"mx-auto w-full":"w-1/2"}  pb-3 `}>
       <form 
         onSubmit={onSubmit}
         className="w-full  rounded-3xl p-2 flex flex-col"
@@ -86,7 +86,7 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
-  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage } = useChat();
+  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage ,isEditorOpen } = useChat();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -175,7 +175,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white" style={{ backgroundColor: "rgb(32,32,33)" }}>
+    <div className="flex-1 flex flex-col h-full bg-white " style={{ backgroundColor: "rgb(32,32,33)" }}>
       {/* Header */}
       <div
         className="border-b border-gray-600 p-4 flex items-center gap-3"
@@ -205,15 +205,16 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
               isLoading={isLoading}
               onSubmit={handleSubmit}
               onKeyDown={handleKeyDown}
+             
             />
           </div>
         </div>
       ) : (
         <>
           <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
-            <div className="space-y-6 py-6 max-w-3xl w-full mx-auto">
+            <div className={`space-y-6 py-6 max-w-3xl  ${!isEditorOpen?"w-full mx-auto":"w-1/2"} `}>
               {currentChat.messages.map((message: Message) => (
-                <MessageComponent key={message.id} message={message} />
+                <MessageComponent key={message.id} message={message} onToggleSideBar={onToggleSidebar}  />
               ))}
               {isLoading && (
                 <MessageComponent

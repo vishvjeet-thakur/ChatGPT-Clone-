@@ -12,7 +12,7 @@ import type { Components  } from "react-markdown"
 import "highlight.js/styles/github-dark.css"
 import React from "react"
 import { CodeEditor } from "@/components/code-editor"
-import { useChat } from "@/components/chat-provider"
+import { useChat  } from "@/components/chat-provider"
 
 interface MessageProps {
   message: {
@@ -21,14 +21,15 @@ interface MessageProps {
     content: string
     timestamp: Date
   }
-  isLoading?: boolean
+  isLoading?: boolean,
+  onToggleSideBar?: () => void;
 }
 
-export function Message({ message, isLoading }: MessageProps) {
+export function Message({ message, isLoading , onToggleSideBar }: MessageProps) {
   const [copied, setCopied] = useState(false)
-  const [isEditorOpen, setIsEditorOpen] = useState(false)
+  // const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [editingCode, setEditingCode] = useState<{ code: string; language: string } | null>(null)
-  const { setMessage } = useChat()
+  const { setMessage ,isEditorOpen ,setIsEditorOpen } = useChat()
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(message.content)
@@ -82,6 +83,7 @@ export function Message({ message, isLoading }: MessageProps) {
         const language = match ? match[1] : "text";
         setEditingCode({ code, language });
         setIsEditorOpen(true);
+        onToggleSideBar?.();
       };
 
       return (

@@ -26,13 +26,13 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
-  const { chats, currentChatId, createNewChat, selectChat, deleteChat } = useChat()
+  const { chats, currentChatId, createNewChat, selectChat, deleteChat , isEditorOpen} = useChat()
   const [editingId, setEditingId] = useState<string | null>(null)
 
   if (!isOpen) return null
 
   return (
-    <div className="w-64 flex flex-col h-full bg-gray-50 dark:bg-gray-900" style={{ backgroundColor: "rgb(22,22,23)" }}>
+    <div className={`w-64 flex flex-col h-full bg-gray-50 dark:bg-gray-900 ${isEditorOpen?"fixed inset-y-0 left-0 z-50":""}`} style={{ backgroundColor: "rgb(22,22,23)" }}>
       {/* Fixed Header */}
       <div className="p-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">

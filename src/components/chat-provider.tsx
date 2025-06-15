@@ -16,6 +16,8 @@ interface Chat {
 interface ChatContextType {
   chats: Chat[]
   currentChatId: string | null
+  isEditorOpen: boolean | null
+  setIsEditorOpen: (val: boolean) => void
   createNewChat: () => void
   selectChat: (id: string) => void
   deleteChat: (id: string) => void
@@ -29,6 +31,7 @@ const ChatContext = createContext<ChatContextType | null>(null)
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
+  const [isEditorOpen , setIsEditorOpen] = useState<boolean | null >(false)
 
   const generateUniqueId = () => {
     const timestamp = Date.now()
@@ -111,6 +114,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       value={{
         chats,
         currentChatId,
+        isEditorOpen,
+        setIsEditorOpen,
         createNewChat,
         selectChat,
         deleteChat,
