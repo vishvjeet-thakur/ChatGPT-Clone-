@@ -195,13 +195,21 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
 
   return (
     <div className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
-      <div className={`flex-1 max-w-3xl ${message.role === "user" ? "order-first" : ""}`}>
+      <div className={`flex-1 ${message.role === "user" ? "order-first" : ""} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
         <div
           className={`${
-            message.role === "user" ? "text-white ml-auto max-w-lg rounded-3xl p-2 pl-5" : "text-white p-2"
+            message.role === "user" 
+              ? message.content.startsWith("```") && message.content.endsWith("```")
+                ? "bg-[#1E1E1E] rounded-lg p-4" // Special styling for code-only messages
+                : "text-white ml-auto max-w-lg rounded-3xl p-2 pl-5"
+              : "text-white p-2"
           }`}
           style={{
-            backgroundColor: message.role === "assistant" ? "rgb(32,32,33)" : "rgb(49,48,49)",
+            backgroundColor: message.role === "assistant" 
+              ? "rgb(32,32,33)" 
+              : message.content.startsWith("```") && message.content.endsWith("```")
+                ? "rgb(30,30,30)" // Darker background for code-only messages
+                : "rgb(49,48,49)"
           }}
         >
           {isLoading ? (
@@ -258,7 +266,6 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
           </div>
         )}
       </div>
-
     </div>
   )
 }

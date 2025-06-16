@@ -223,6 +223,55 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     }
   };
 
+  const handleSaveCode = async (code: string) => {
+    if (!editingCode) return;
+
+    // Add the code as a user message with special formatting
+    const userMessageId = addMessage(`\`\`\`${editingCode.language}\n${code}\n\`\`\``, "user");
+    const assistantMessageId = addMessage("", "assistant");
+
+    try {
+      // Send code for analysis
+      const response = await fetch("/api/code", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code, language: editingCode.language }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantMessage = "";
+
+      if (reader) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            assistantMessage += chunk;
+            setMessage(assistantMessageId, assistantMessage);
+          }
+        } catch (streamError) {
+          console.error("Stream reading error:", streamError);
+        }
+      }
+
+      if (!assistantMessage) {
+        setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.");
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request. Please try again.");
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-white " style={{ backgroundColor: "rgb(32,32,33)" }}>
       {/* Header */}
@@ -296,8 +345,8 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
             setEditingCode(null);
           }}
           initialCode={editingCode.code}
-          onSave={() => {}}
           language={editingCode.language}
+          onSave={handleSaveCode}
         />
       )}
     </div>

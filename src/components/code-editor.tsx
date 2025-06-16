@@ -1,14 +1,15 @@
 import React, { useEffect, useRef } from "react";
 import Editor, { Monaco } from "@monaco-editor/react";
 import { X, Save, Copy, Check } from "lucide-react";
+import { useChat } from "./chat-provider";
 
 interface CodeEditorProps {
   isOpen: boolean;
   onClose: () => void;
   initialCode: string;
-  onSave: (code: string) => void;
   language: string;
   onSidebarToggle?: () => void;
+  onSave: (code: string) => void;
 }
 
 const languageMap: { [key: string]: string } = {
@@ -62,12 +63,13 @@ export function CodeEditor({
   isOpen,
   onClose,
   initialCode,
-  onSave,
   language,
   onSidebarToggle,
+  onSave,
 }: CodeEditorProps) {
   const [copied, setCopied] = React.useState(false);
   const editorRef = useRef<any>(null);
+  const { addMessage , setMessage } = useChat();
 
   useEffect(() => {
     if (isOpen && onSidebarToggle) {
@@ -126,7 +128,7 @@ export function CodeEditor({
           <button
             onClick={handleSave}
             className="p-1 text-gray-400 hover:text-white transition-colors"
-            title="Save changes"
+            title="Save and analyze code"
           >
             <Save className="h-4 w-4" />
           </button>
