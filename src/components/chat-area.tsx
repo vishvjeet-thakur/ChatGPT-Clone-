@@ -13,6 +13,7 @@ import { Chat, Message } from "@/types/chat"
 import { CodeEditor } from "./code-editor"
 import { VoiceRecorder } from "@/components/voice-recorder"
 
+
 interface ChatInputProps {
   input: string;
   setInput: (value: string) => void;
@@ -23,7 +24,7 @@ interface ChatInputProps {
 
 const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { isEditorOpen } = useChat();
+  const { isEditorOpen, isRecording , waveformRef} = useChat();
   const [isTranscribing, setIsTranscribing] = useState(false);
 
   useEffect(() => {
@@ -80,6 +81,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
         style={{ backgroundColor: "rgb(49,48,49)", borderColor: "rgb(96,96,96)", maxHeight: "300px" }}
       >
         <div className="relative overflow-auto flex-1">
+          {!isRecording?
           <Textarea
             ref={textareaRef}
             value={input}
@@ -89,7 +91,9 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
             className="w-full resize-none bg-gray-800 text-white placeholder:text-gray-400 border-none focus:outline-none focus:ring-0 focus:border-none"
             style={{ minHeight: "40px", maxHeight: "200px", backgroundColor: "rgb(49,48,49)" }}
             disabled={isLoading || isTranscribing}
-          />
+          />:
+          <div id="waveform"  ref={waveformRef} className="w-full resize-none bg-[rgb(49,48,49)] text-white placeholder:text-gray-400 border-none focus:outline-none focus:ring-0 focus:border-none"/> }
+          
         </div>
         <div className="flex items-center justify-between">
           <label className="flex items-center cursor-pointer">

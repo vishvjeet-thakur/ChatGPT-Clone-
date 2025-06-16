@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useRef, useState, type ReactNode } from "react"
 
 interface Chat {
   id: string
@@ -24,6 +24,8 @@ interface ChatContextType {
   currentChatId: string | null
   isEditorOpen: boolean | null
   editingCode:  CodeInterface | null
+  isRecording: boolean 
+  setIsRecording: (val: boolean) => void
   setEditingCode: (code: CodeInterface | null) => void
   setIsEditorOpen: (val: boolean) => void
   createNewChat: () => void
@@ -33,6 +35,7 @@ interface ChatContextType {
   getCurrentChat: () => Chat | null
   setMessage: (messageId: string, content: string) => void
   updateChatTitle: (chatId: string, title: string) => void
+  waveformRef: React.RefObject<HTMLDivElement|null>;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null)
@@ -42,6 +45,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [isEditorOpen , setIsEditorOpen] = useState<boolean | null >(false)
   const [editingCode, setEditingCodeState] = useState< CodeInterface | null>(null)
+  const [isRecording, setIsRecording] = useState(false);
+  const waveformRef = useRef<HTMLDivElement | null>(null);
 
   const setEditingCode = (code:CodeInterface | null) => {
     setEditingCodeState(code);
@@ -140,6 +145,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         currentChatId,
         isEditorOpen,
         editingCode,
+        isRecording,
+        waveformRef,
+        setIsRecording,
         setEditingCode,
         setIsEditorOpen,
         createNewChat,
@@ -149,6 +157,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         getCurrentChat,
         setMessage,
         updateChatTitle,
+        
       }}
     >
       {children}

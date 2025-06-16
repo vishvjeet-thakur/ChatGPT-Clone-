@@ -1,6 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef , useEffect } from 'react';
 import { Mic, Square, Pause } from 'lucide-react';
 import { Button } from './ui/button';
+import { useChat } from './chat-provider';
+import WaveSurfer from 'wavesurfer.js';
+import RecordPlugin from 'wavesurfer.js/dist/plugins/record.esm.js';
 
 interface VoiceRecorderProps {
   onRecordingComplete: (audioBlob: Blob) => void;
@@ -8,18 +11,54 @@ interface VoiceRecorderProps {
 }
 
 export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderProps) {
-  const [isRecording, setIsRecording] = useState(false);
+  const { isRecording, setIsRecording , waveformRef} = useChat();
   const [isPaused, setIsPaused] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
+  const wavesurferRef = useRef<WaveSurfer | null>(null);
+  const recordRef = useRef<RecordPlugin | null>(null);
+
+
+
+  useEffect(() => {
+    // When recording starts and waveform container is mounted
+    if (isRecording && waveformRef.current ) {
+      const wavesurfer = WaveSurfer.create({
+        container: waveformRef.current,
+        waveColor: 'rgb(200,200, 200)',
+        progressColor: 'rgb(100, 0, 100)',
+      });
+
+      const record = wavesurfer.registerPlugin(
+        RecordPlugin.create({
+          renderRecordedAudio: false,
+          scrollingWaveform: true,
+        })
+      );
+
+      wavesurferRef.current = wavesurfer;
+      recordRef.current = record;
+
+      record.startRecording();
+    }
+    else
+    {
+        recordRef.current?.stopRecording();
+        wavesurferRef.current?.destroy();
+    }
+  }, [isRecording]);
+
+
+
   const startRecording = async () => {
     try {
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm'
+        mimeType: 'audio/webm',
       });
-      
+
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -32,7 +71,7 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         onRecordingComplete(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start();
@@ -48,9 +87,12 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
 
     if (isPaused) {
       mediaRecorderRef.current.resume();
+      recordRef.current?.resumeRecording();
     } else {
       mediaRecorderRef.current.pause();
+      recordRef.current?.pauseRecording();
     }
+
     setIsPaused(!isPaused);
   };
 
@@ -95,4 +137,4 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
       )}
     </div>
   );
-} 
+}
