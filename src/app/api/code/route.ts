@@ -6,7 +6,7 @@ export async function POST(request: Request) {
     const { code, language } = await request.json()
 
     const prompt = `Analyze this ${language} code and provide:
-    1. Output if code is ran , or type of error with reason.
+    1. Give the exact Output that will be displayed on terminal if it is ran, or type of error with reason.
     1. A brief explanation of what the code does
     2. Any potential improvements or corrections
     3. Best practices that could be applied

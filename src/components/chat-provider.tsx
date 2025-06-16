@@ -10,6 +10,7 @@ interface Chat {
     role: "user" | "assistant"
     content: string
     timestamp: Date
+    messageType?: "code" | "chat"
   }>
 }
 
@@ -28,7 +29,7 @@ interface ChatContextType {
   createNewChat: () => void
   selectChat: (id: string) => void
   deleteChat: (id: string) => void
-  addMessage: (content: string, role: "user" | "assistant") => string
+  addMessage: (content: string, role: "user" | "assistant", messageType?: "code" | "chat") => string
   getCurrentChat: () => Chat | null
   setMessage: (messageId: string, content: string) => void
   updateChatTitle: (chatId: string, title: string) => void
@@ -83,7 +84,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   }
 
-  const addMessage = (content: string, role: "user" | "assistant") => {
+  const addMessage = (content: string, role: "user" | "assistant", messageType: "code" | "chat" = "chat") => {
     if (!currentChatId) return ""
 
     const messageId = generateUniqueId()
@@ -92,6 +93,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       role,
       content,
       timestamp: new Date(),
+      messageType
     }
 
     setChats((prev) =>

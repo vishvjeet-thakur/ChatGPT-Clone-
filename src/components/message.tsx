@@ -20,6 +20,7 @@ interface MessageProps {
     role: "user" | "assistant"
     content: string
     timestamp: Date
+    messageType?: "code" | "chat"
   }
   isLoading?: boolean,
   onToggleSideBar?: () => void;
@@ -199,19 +200,26 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
         <div
           className={`${
             message.role === "user" 
-              ? message.content.startsWith("```") && message.content.endsWith("```")
-                ? "bg-[#1E1E1E] rounded-lg p-4" // Special styling for code-only messages
+              ? message.messageType === "code"
+                ? "bg-[#1E1E1E] rounded-lg p-4" // Special styling for code messages
                 : "text-white ml-auto max-w-lg rounded-3xl p-2 pl-5"
               : "text-white p-2"
           }`}
           style={{
             backgroundColor: message.role === "assistant" 
               ? "rgb(32,32,33)" 
-              : message.content.startsWith("```") && message.content.endsWith("```")
-                ? "rgb(30,30,30)" // Darker background for code-only messages
+              : message.messageType === "code"
+                ? "rgb(30,30,30)" // Darker background for code messages
                 : "rgb(49,48,49)"
           }}
         >
+          {message.role === "user" && message.messageType === "code" && (
+            <div className="flex items-center gap-2 mb-2">
+              <div className="px-2 py-1 bg-blue-600/20 rounded text-xs text-blue-400 font-medium">
+                Code Analysis
+              </div>
+            </div>
+          )}
           {isLoading ? (
             <div className="flex items-center gap-2">
               <div className="flex space-x-1">

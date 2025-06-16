@@ -227,9 +227,9 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     if (!editingCode) return;
 
     // Add the code as a user message with special formatting
-    const userMessageId = addMessage(`\`\`\`${editingCode.language}\n${code}\n\`\`\``, "user");
+    const userMessageId = addMessage(`\`\`\`${editingCode.language}\n${code}\n\`\`\``, "user", "code");
     const assistantMessageId = addMessage("", "assistant");
-
+    setIsLoading(true)
     try {
       // Send code for analysis
       const response = await fetch("/api/code", {
@@ -269,6 +269,9 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     } catch (error) {
       console.error("Chat error:", error);
       setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request. Please try again.");
+    }
+    finally{
+      setIsLoading(false);
     }
   };
 
