@@ -1,5 +1,5 @@
 import React, { useState, useRef , useEffect } from 'react';
-import { Mic, Square, Pause } from 'lucide-react';
+import { Mic, Square, Pause , Check, X, Play } from 'lucide-react';
 import { Button } from './ui/button';
 import { useChat } from './chat-provider';
 import WaveSurfer from 'wavesurfer.js';
@@ -15,7 +15,7 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
   const [isPaused, setIsPaused] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-
+  const didCancelRef = useRef(false);
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const recordRef = useRef<RecordPlugin | null>(null);
 
@@ -70,7 +70,14 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        onRecordingComplete(audioBlob);
+      
+        // Only call onRecordingComplete if not cancelled
+        if (!didCancelRef.current) {
+          onRecordingComplete(audioBlob);
+        } else {
+          didCancelRef.current = false; // reset for future recordings
+        }
+      
         stream.getTracks().forEach((track) => track.stop());
       };
 
@@ -104,6 +111,41 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
     }
   };
 
+  const cancelRecording = () => {
+    didCancelRef.current = true; // mark as canceled
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+    }
+  
+    if (recordRef.current?.isRecording()) {
+      recordRef.current.stopRecording();
+    }
+  
+    setIsRecording(false);
+    setIsPaused(false);
+    onCancel();
+  
+    // Clean up wavesurfer
+    wavesurferRef.current?.destroy();
+    wavesurferRef.current = null;
+    recordRef.current = null;
+  };
+  
+
+  useEffect(() => {
+    // Cleanup on unmount (ensure this runs if component is removed while recording)
+    return () => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      if (recordRef.current?.isRecording()) {
+        recordRef.current.stopRecording();
+      }
+      wavesurferRef.current?.destroy();
+    };
+  }, []);
+
+
   return (
     <div className="flex items-center gap-2">
       {!isRecording ? (
@@ -123,7 +165,7 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
             onClick={togglePause}
             className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
           >
-            {isPaused ? <Mic size={16} /> : <Pause size={16} />}
+            {isPaused ? <Play size={16} /> : <Pause size={16} />}
           </Button>
           <Button
             type="button"
@@ -131,8 +173,17 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
             onClick={stopRecording}
             className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
           >
-            <Square size={16} />
+            <Check size={16} />
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={cancelRecording}
+            className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
+          >
+            <X size={16} />
+          </Button>
+
         </>
       )}
     </div>
