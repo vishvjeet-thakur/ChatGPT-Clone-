@@ -57,7 +57,14 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
       }
 
       const { text } = await response.json();
-      setInput(text);
+      const currentText = input.trim();
+      const newText = text.trim();
+
+      setInput(
+        // Add a space between existing text and new text if both exist
+        currentText ? `${currentText} ${newText}` : newText
+      );
+      
     } catch (error) {
       console.error('Error transcribing audio:', error);
     } finally {
