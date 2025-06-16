@@ -28,9 +28,7 @@ interface MessageProps {
 
 export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: MessageProps) {
   const [copied, setCopied] = useState(false)
-  // const [isEditorOpen, setIsEditorOpen] = useState(false)
-  const [editingCode, setEditingCode] = useState<{ code: string; language: string } | null>(null)
-  const { setMessage ,isEditorOpen ,setIsEditorOpen } = useChat()
+  const { setMessage ,isEditorOpen ,setIsEditorOpen , editingCode, setEditingCode } = useChat()
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(message.content)
@@ -261,18 +259,6 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
         )}
       </div>
 
-      {isEditorOpen && editingCode && (
-        <CodeEditor
-          isOpen={isEditorOpen}
-          onClose={() => {
-            setIsEditorOpen(false);
-            setEditingCode(null);
-          }}
-          initialCode={editingCode.code}
-          onSave={() => {}}
-          language={editingCode.language}
-        />
-      )}
     </div>
   )
 }

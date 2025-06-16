@@ -10,6 +10,7 @@ import { useChat } from "@/components/chat-provider"
 import { Send, Square, PanelLeft, Plus, Mic } from "lucide-react"
 import { Message as MessageComponent } from "@/components/message"
 import { Chat, Message } from "@/types/chat"
+import { CodeEditor } from "./code-editor"
 
 interface ChatInputProps {
   input: string;
@@ -86,7 +87,7 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
-  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage ,isEditorOpen , updateChatTitle } = useChat();
+  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage ,isEditorOpen , updateChatTitle , editingCode, setIsEditorOpen , setEditingCode } = useChat();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -244,25 +245,24 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
 
       {/* Messages or Centered Agenda */}
       {currentChat?.messages.length === 0 || !currentChat ? (
-        <div className="flex-1 flex flex-col justify-center w-full h-full px-4">
-          <div className="text-center w-full max-w-3xl mx-auto">
-            <h2 className="text-3xl font-semibold text-white mb-6">What's today's agenda?</h2>
+        <div className={`flex-1 flex flex-col justify-center ${isEditorOpen?"mr-10":"w-full"}  h-full px-4 `}>
+          <div className={`text-center  ${isEditorOpen?"":"w-full max-w-3xl mx-auto"}   `}>
+            <h2 className={`text-3xl ${isEditorOpen?"w-1/2":""}  font-semibold text-white mb-6`}>What's today's agenda?</h2>
             <ChatInput
               input={input}
               setInput={setInput}
               isLoading={isLoading}
               onSubmit={handleSubmit}
               onKeyDown={handleKeyDown}
-             
             />
           </div>
         </div>
       ) : (
         <>
           <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
-            <div className={`space-y-6 py-6 max-w-3xl  ${!isEditorOpen?"w-full mx-auto":"w-1/2"} `}>
+            <div className={`space-y-6 py-6 max-w-3xl ${!isEditorOpen ? "w-full mx-auto" : "w-1/2"}`}>
               {currentChat.messages.map((message: Message) => (
-                <MessageComponent key={message.id} message={message} onToggleSideBar={onToggleSidebar} sidebarOpen = {sidebarOpen} />
+                <MessageComponent key={message.id} message={message} onToggleSideBar={onToggleSidebar} sidebarOpen={sidebarOpen} />
               ))}
               {isLoading && (
                 <MessageComponent
@@ -285,6 +285,20 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
             onKeyDown={handleKeyDown}
           />
         </>
+      )}
+
+      {/* Code Editor - Moved outside chat-specific section */}
+      {isEditorOpen && editingCode && (
+        <CodeEditor
+          isOpen={isEditorOpen}
+          onClose={() => {
+            setIsEditorOpen(false);
+            setEditingCode(null);
+          }}
+          initialCode={editingCode.code}
+          onSave={() => {}}
+          language={editingCode.language}
+        />
       )}
     </div>
   );

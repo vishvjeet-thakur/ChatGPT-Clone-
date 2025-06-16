@@ -13,10 +13,17 @@ interface Chat {
   }>
 }
 
+interface CodeInterface{
+  code: string
+  language :string
+}
+
 interface ChatContextType {
   chats: Chat[]
   currentChatId: string | null
   isEditorOpen: boolean | null
+  editingCode:  CodeInterface | null
+  setEditingCode: (code: CodeInterface | null) => void
   setIsEditorOpen: (val: boolean) => void
   createNewChat: () => void
   selectChat: (id: string) => void
@@ -33,6 +40,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const [isEditorOpen , setIsEditorOpen] = useState<boolean | null >(false)
+  const [editingCode, setEditingCodeState] = useState< CodeInterface | null>(null)
+
+  const setEditingCode = (code:CodeInterface | null) => {
+    setEditingCodeState(code);
+  }
+
 
   const generateUniqueId = () => {
     const timestamp = Date.now()
@@ -124,6 +137,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         chats,
         currentChatId,
         isEditorOpen,
+        editingCode,
+        setEditingCode,
         setIsEditorOpen,
         createNewChat,
         selectChat,

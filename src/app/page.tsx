@@ -6,7 +6,7 @@ import { ChatArea } from "@/components/chat-area"
 import { ChatProvider } from "@/components/chat-provider"
 
 export default function ChatGPTClone() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen  ] = useState(true)
 
   return (
     <ChatProvider>
