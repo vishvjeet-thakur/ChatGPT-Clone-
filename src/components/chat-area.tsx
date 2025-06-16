@@ -11,6 +11,7 @@ import { Send, Square, PanelLeft, Plus, Mic } from "lucide-react"
 import { Message as MessageComponent } from "@/components/message"
 import { Chat, Message } from "@/types/chat"
 import { CodeEditor } from "./code-editor"
+import { VoiceRecorder } from "@/components/voice-recorder"
 
 interface ChatInputProps {
   input: string;
@@ -22,7 +23,9 @@ interface ChatInputProps {
 
 const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const {isEditorOpen} = useChat();
+  const { isEditorOpen } = useChat();
+  const [isTranscribing, setIsTranscribing] = useState(false);
+
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -32,11 +35,41 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
     }
   }, [input]);
 
+  const handleRecordingComplete = async (audioBlob: Blob) => {
+    setIsTranscribing(true);
+    try {
+      const formData = new FormData();
+      // Create a File object with proper name and type
+      const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
+      formData.append('audio', audioFile);
+
+      console.log('Audio file type:', audioFile.type);
+      console.log('Audio file size:', audioFile.size);
+
+      const response = await fetch('/api/transcribe', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to transcribe audio: ${errorData.error || response.statusText}`);
+      }
+
+      const { text } = await response.json();
+      setInput(text);
+    } catch (error) {
+      console.error('Error transcribing audio:', error);
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
   return (
-    <div className={` max-w-3xl ${!isEditorOpen?"mx-auto w-full":"w-1/2"}  pb-3 `}>
+    <div className={`max-w-3xl ${!isEditorOpen ? "mx-auto w-full" : "w-1/2"} pb-3`}>
       <form 
         onSubmit={onSubmit}
-        className="w-full  rounded-3xl p-2 flex flex-col"
+        className="w-full rounded-3xl p-2 flex flex-col"
         style={{ backgroundColor: "rgb(49,48,49)", borderColor: "rgb(96,96,96)", maxHeight: "300px" }}
       >
         <div className="relative overflow-auto flex-1">
@@ -48,10 +81,10 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
             placeholder="Message ChatGPT..."
             className="w-full resize-none bg-gray-800 text-white placeholder:text-gray-400 border-none focus:outline-none focus:ring-0 focus:border-none"
             style={{ minHeight: "40px", maxHeight: "200px", backgroundColor: "rgb(49,48,49)" }}
-            disabled={isLoading}
+            disabled={isLoading || isTranscribing}
           />
         </div>
-        <div className="flex items-center justify-between ">
+        <div className="flex items-center justify-between">
           <label className="flex items-center cursor-pointer">
             <Plus className="w-5 h-5 text-gray-400 hover:text-white" />
             <input
@@ -62,16 +95,17 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
             />
           </label>
           <div className="flex items-center gap-2">
-            <button type="button" className="p-1 rounded-full hover:bg-gray-700">
-              <Mic className="w-5 h-5 text-gray-400 hover:text-white" />
-            </button>
+            <VoiceRecorder
+              onRecordingComplete={handleRecordingComplete}
+              onCancel={() => setIsTranscribing(false)}
+            />
             <Button
               type="submit"
               size="sm"
-              disabled={!input.trim() || isLoading}
+              disabled={!input.trim() || isLoading || isTranscribing}
               className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
             >
-              {isLoading ? <Square size={16} /> : <Send size={16} />}
+              {isLoading || isTranscribing ? <Square size={16} /> : <Send size={16} />}
             </Button>
           </div>
         </div>
