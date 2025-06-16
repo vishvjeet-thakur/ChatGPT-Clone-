@@ -113,10 +113,10 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
             <Button
               type="submit"
               size="sm"
-              disabled={!input.trim() || isLoading || isTranscribing}
+              disabled={!input.trim() || isLoading || isTranscribing || isRecording}
               className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
             >
-              {isLoading || isTranscribing ? <Square size={16} /> : <Send size={16} />}
+              {isLoading || isTranscribing || isRecording ? <Square size={16} /> : <Send size={16} />}
             </Button>
           </div>
         </div>
