@@ -33,7 +33,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        onToggle()
+        if (isEditorOpen) {
+          onToggle()
+        }
       }
     }
 
@@ -44,7 +46,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [isOpen, onToggle])
+  }, [isOpen, onToggle, isEditorOpen])
 
   if (!isOpen) return null
 
