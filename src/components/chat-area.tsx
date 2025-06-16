@@ -7,11 +7,16 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from "@/components/chat-provider"
-import { Send, Square, PanelLeft, Plus, Mic } from "lucide-react"
+import { Send, Square, PanelLeft, Plus, Mic, Loader2, X } from "lucide-react"
 import { Message as MessageComponent } from "@/components/message"
 import { Chat, Message } from "@/types/chat"
 import { CodeEditor } from "./code-editor"
 import { VoiceRecorder } from "@/components/voice-recorder"
+import { uploadFile } from "@uploadcare/upload-client";
+import {
+  deleteFile,
+  UploadcareSimpleAuthSchema,
+} from '@uploadcare/rest-client';
 
 
 interface ChatInputProps {
@@ -24,8 +29,65 @@ interface ChatInputProps {
 
 const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { isEditorOpen, isRecording , waveformRef} = useChat();
+  const { isEditorOpen, isRecording, waveformRef } = useChat();
   const [isTranscribing, setIsTranscribing] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string }[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState<{ id: string, mimeType: string }[]>([]);
+  
+
+  const handleDeleteFile = async (uuid: string) => {
+    try {
+      const uploadcareSimpleAuthSchema = new UploadcareSimpleAuthSchema({
+        publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_API_KEY || '',
+        secretKey: process.env.NEXT_PUBLIC_UPLOADCARE_SECRET_KEY || '',
+      });
+
+      await deleteFile(
+        { uuid },
+        { authSchema: uploadcareSimpleAuthSchema }
+      );
+
+      // Remove from uploaded files
+      setUploadedFiles(prev => prev.filter(file => file.uuid !== uuid));
+    } catch (error) {
+      console.error('Error deleting file:', error);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+  
+    // Add files to uploading state
+    const newUploadingFiles = Array.from(files).map(file => ({
+      id: Math.random().toString(36).substring(7),
+      mimeType: file.type
+    }));
+    setUploadingFiles(prev => [...prev, ...newUploadingFiles]);
+  
+    const uploaded : { url: string, mimeType: string, uuid: string }[] = [];
+  
+    for (const file of Array.from(files)) {
+      try {
+        const result = await uploadFile(file, {
+          publicKey: process.env.NEXT_PUBLIC_UPLOADCARE_API_KEY || "" ,
+          store:'auto'
+        });
+  
+        uploaded.push({ 
+          url: result.cdnUrl || "", 
+          mimeType: file.type,
+          uuid: result.uuid || ""
+        });
+      } catch (err) {
+        console.error("Upload failed", err);
+      }
+    }
+  
+    // Remove uploaded files from uploading state
+    setUploadingFiles(prev => prev.filter(f => !newUploadingFiles.find(nf => nf.id === f.id)));
+    setUploadedFiles((prev) => [...prev, ...uploaded]);
+  };
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -78,9 +140,47 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
       <form 
         onSubmit={onSubmit}
         className="w-full rounded-3xl p-2 flex flex-col"
-        style={{ backgroundColor: "rgb(49,48,49)", borderColor: "rgb(96,96,96)", maxHeight: "300px" }}
+        style={{ backgroundColor: "rgb(49,48,49)", borderColor: "rgb(96,96,64)", maxHeight: "300px" }}
       >
         <div className="relative overflow-auto flex-1">
+          <div className="flex flex-wrap mb-2 gap-2">
+            {/* Show uploading files with spinner */}
+            {uploadingFiles.map((file) => (
+              <div key={file.id} className="relative">
+                {file.mimeType.startsWith("image/") ? (
+                  <div className="w-24 h-24 bg-gray-700 rounded-lg flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2">
+                    <div className="flex flex-col items-center gap-2">
+                      <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+                      <span>Uploading...</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+            {/* Show uploaded files */}
+            {uploadedFiles.map((file, idx) => (
+              <div key={idx} className="relative group">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteFile(file.uuid)}
+                  className="absolute top-1 right-1 bg-red-500 rounded-full  text-white group-hover:bg-red-700    transition-opacity"
+                >
+                  <X size={16} />
+                </button>
+                {file.mimeType.startsWith("image/") ? (
+                  <img src={file.url} alt="preview" className="w-24 h-24 object-cover rounded-lg border" />
+                ) : (
+                  <div className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2">
+                    📄 File<br />{file.mimeType.split("/")[1] || "File"}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
           {!isRecording?
           <Textarea
             ref={textareaRef}
@@ -103,6 +203,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
               className="hidden"
               multiple
               accept="image/*,application/pdf,.doc,.docx,.txt"
+              onChange={handleFileChange}
             />
           </label>
           <div className="flex items-center gap-2">
