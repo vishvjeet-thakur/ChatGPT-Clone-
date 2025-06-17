@@ -13,6 +13,7 @@ import "highlight.js/styles/github-dark.css"
 import React from "react"
 import { CodeEditor } from "@/components/code-editor"
 import { useChat  } from "@/components/chat-provider"
+import { FileViewerDialog } from "@/components/file-viewer-dialog"
 
 interface MessageProps {
   message: {
@@ -30,6 +31,7 @@ interface MessageProps {
 
 export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: MessageProps) {
   const [copied, setCopied] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string } | null>(null)
   const { setMessage ,isEditorOpen ,setIsEditorOpen , editingCode, setEditingCode } = useChat()
 
   const copyToClipboard = async () => {
@@ -202,21 +204,28 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
       <div className={`flex-1 ${message.role === "user" ? "order-first" : ""} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
         {
           message.uploads.length>0 &&
-          <div className=" flex justify-end">
+          <div className="flex justify-end">
             {
-          message.uploads.map((file, idx) => (
-            <div key={idx} className="relative group ml-3">
-             
-              {file.mimeType.startsWith("image/") ? (
-                <img src={file.url} alt="preview" className="w-24 h-24 object-cover rounded-lg border" />
-              ) : (
-                <div className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2">
-                  📄 File<br />{file.mimeType.split("/")[1] || "File"}
+              message.uploads.map((file, idx) => (
+                <div key={idx} className="relative group ml-3">
+                  {file.mimeType.startsWith("image/") ? (
+                    <img 
+                      src={file.url} 
+                      alt="preview" 
+                      className="w-24 h-24 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
+                      onClick={() => setSelectedFile(file)}
+                    />
+                  ) : (
+                    <div 
+                      className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2 cursor-pointer hover:bg-gray-600 transition-colors"
+                      onClick={() => setSelectedFile(file)}
+                    >
+                      📄 File<br />{file.mimeType.split("/")[1] || "File"}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))
-        }
+              ))
+            }
           </div>
         }
         <div
@@ -298,6 +307,11 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
           </div>
         )}
       </div>
+      <FileViewerDialog 
+        isOpen={!!selectedFile} 
+        onClose={() => setSelectedFile(null)} 
+        file={selectedFile}
+      />
     </div>
   )
 }

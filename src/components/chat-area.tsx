@@ -25,6 +25,7 @@ import {
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
+import { FileViewerDialog } from "@/components/file-viewer-dialog"
 
 
 interface ChatInputProps {
@@ -41,6 +42,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
   const [isTranscribing, setIsTranscribing] = useState(false);
   
   const [uploadingFiles, setUploadingFiles] = useState<{ id: string, mimeType: string }[]>([]);
+  const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string } | null>(null);
   
 
   const handleDeleteFile = async (uuid: string) => {
@@ -171,18 +173,26 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
             ))}
             {/* Show uploaded files */}
             {uploadedFiles.map((file) => (
-              <div key={file.uuid} className="relative group">
+              <div key={file.uuid} className="relative">
                 <button
                   type="button"
                   onClick={() => handleDeleteFile(file.uuid)}
-                  className="absolute top-1 right-1 bg-red-500 rounded-full  text-white group-hover:bg-red-700    transition-opacity"
+                  className="absolute top-1 right-1 bg-red-500 rounded-full text-white hover:bg-red-700  p-1"
                 >
                   <X size={16} />
                 </button>
                 {file.mimeType.startsWith("image/") ? (
-                  <img src={file.url} alt="preview" className="w-24 h-24 object-cover rounded-lg border" />
+                  <img 
+                    src={file.url} 
+                    alt="preview" 
+                    className="w-24 h-24 object-cover rounded-lg border cursor-pointer  transition-opacity" 
+                    onClick={() => setSelectedFile(file)}
+                  />
                 ) : (
-                  <div className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2">
+                  <div 
+                    className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2 cursor-pointer hover:bg-gray-600 transition-colors"
+                    onClick={() => setSelectedFile(file)}
+                  >
                     📄 File<br />{file.mimeType.split("/")[1] || "File"}
                   </div>
                 )}
@@ -231,6 +241,11 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
         </div>
       </form>
       <p className="text-xs text-gray-400 mt-1 text-center">ChatGPT can make mistakes. Check important info.</p>
+      <FileViewerDialog 
+        isOpen={!!selectedFile} 
+        onClose={() => setSelectedFile(null)} 
+        file={selectedFile}
+      />
     </div>
   );
 };
