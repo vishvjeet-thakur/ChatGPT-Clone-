@@ -17,6 +17,7 @@ import {
   Crown,
   PanelLeftClose,
   Sparkles,
+  Loader2,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -26,7 +27,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
-  const { chats, currentChatId, createNewChat, selectChat, deleteChat, isEditorOpen } = useChat()
+  const { chats, currentChatId, createNewChat, selectChat, deleteChat, isEditorOpen, isLoading } = useChat()
   const [editingId, setEditingId] = useState<string | null>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
@@ -126,7 +127,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="px-3">
             <div className="py-3">
               <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Chats</h3>
-              {chats.length === 0 ? (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />
+                </div>
+              ) : chats.length === 0 ? (
                 <div className="text-gray-500 text-sm py-4 text-center">No chats yet</div>
               ) : (
                 <div className="space-y-1">
@@ -139,6 +144,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       onClick={() => selectChat(chat._id)}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {/* <MessageSquare size={14} className="flex-shrink-0 text-gray-400" /> */}
                         <span className="truncate text-gray-200 max-w-[180px]">
                           {chat.title}
                         </span>

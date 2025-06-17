@@ -16,6 +16,7 @@ interface ChatContextType {
   isEditorOpen: boolean | null
   editingCode: CodeInterface | null
   isRecording: boolean
+  isLoading: boolean
   uploadedFiles: { url: string, mimeType: string, uuid: string }[]
   setUploadedFiles: (file: { url: string, mimeType: string, uuid: string }[]) => void
   setIsRecording: (val: boolean) => void
@@ -40,26 +41,35 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false)
   const [editingCode, setEditingCode] = useState<CodeInterface | null>(null)
   const [isRecording, setIsRecording] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string }[]>([])
   const waveformRef = useRef<HTMLDivElement | null>(null)
 
   // Load chats from database when user signs in
   useEffect(() => {
     if (isSignedIn && userId) {
+      setIsLoading(true)
       fetch('/api/chats')
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
-            console.log(data)
             setChats(data)
             if (data.length > 0) {
               setCurrentChatId(data[0]._id)
+            } else {
+              // Only create a new chat if there are no existing chats
+              createNewChat()
             }
           }
         })
         .catch(error => {
           console.error('Error loading chats:', error)
         })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    } else {
+      setIsLoading(false)
     }
   }, [isSignedIn, userId])
 
@@ -67,7 +77,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isSignedIn && userId && chats.length > 0) {
       const currentChat = chats.find(chat => chat._id === currentChatId)
-      console.log(currentChat)
       if (currentChat) {
         fetch('/api/chats', {
           method: 'PUT',
@@ -87,6 +96,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [chats, currentChatId, isSignedIn, userId])
 
   const createNewChat = () => {
+    // Don't create a new chat if we already have an empty one
+    const emptyChat = chats.find(chat => chat.messages.length === 0)
+    if (emptyChat) {
+      setCurrentChatId(emptyChat._id)
+      return
+    }
+
     const newChat: Omit<Chat, '_id' | 'userId'> = {
       title: "New Chat",
       messages: [],
@@ -124,10 +140,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const deleteChat = (id: string) => {
-    setChats((prev) => prev.filter((chat) => chat._id !== id))
-    if (currentChatId === id) {
-      setCurrentChatId(null)
-    }
+    setChats((prev) => {
+      const newChats = prev.filter((chat) => chat._id !== id)
+      // If we're deleting the current chat, select the first chat in the list
+      if (currentChatId === id && newChats.length > 0) {
+        setCurrentChatId(newChats[0]._id)
+      } else if (currentChatId === id) {
+        setCurrentChatId(null)
+      }
+      return newChats
+    })
 
     if (isSignedIn && userId) {
       fetch('/api/chats', {
@@ -208,6 +230,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         isEditorOpen,
         editingCode,
         isRecording,
+        isLoading,
         waveformRef,
         uploadedFiles,
         setUploadedFiles,
