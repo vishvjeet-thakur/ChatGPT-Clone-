@@ -17,6 +17,14 @@ import {
   deleteFile,
   UploadcareSimpleAuthSchema,
 } from '@uploadcare/rest-client';
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 
 
 interface ChatInputProps {
@@ -447,20 +455,31 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     <div className="flex-1 flex flex-col h-full bg-white " style={{ backgroundColor: "rgb(32,32,33)" }}>
       {/* Header */}
       <div
-        className="border-b border-gray-600 p-4 flex items-center gap-3"
+        className="border-b border-gray-600 p-4 flex items-center justify-between"
         style={{ backgroundColor: "rgb(32,32,33)", borderColor: "rgb(64,64,64)" }}
       >
-        {!sidebarOpen && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleSidebar}
-            className="p-2 hover:bg-gray-700 text-gray-300 hover:text-white"
-          >
-            <PanelLeft size={20} />
-          </Button>
-        )}
-        <h1 className="text-lg font-semibold text-white">ChatGPT</h1>
+        <div className="flex items-center gap-3">
+          {!sidebarOpen && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleSidebar}
+              className="p-2 hover:bg-gray-700 text-gray-300 hover:text-white"
+            >
+              <PanelLeft size={20} />
+            </Button>
+          )}
+          <h1 className="text-lg font-semibold text-white">ChatGPT</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <SignedOut>
+            <SignInButton />
+            <SignUpButton />
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
       </div>
 
       {/* Messages or Centered Agenda */}
