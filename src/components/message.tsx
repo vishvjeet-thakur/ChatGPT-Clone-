@@ -19,6 +19,7 @@ interface MessageProps {
     id: string
     role: "user" | "assistant"
     content: string
+    uploads: { url: string, mimeType: string, uuid: string }[]
     timestamp: Date
     messageType?: "code" | "chat"
   }
@@ -194,9 +195,30 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
     ),
   }
 
+  const message_to_be_shown = message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()
+
   return (
     <div className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
       <div className={`flex-1 ${message.role === "user" ? "order-first" : ""} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
+        {
+          message.uploads.length>0 &&
+          <div className=" flex justify-end">
+            {
+          message.uploads.map((file, idx) => (
+            <div key={idx} className="relative group ml-3">
+             
+              {file.mimeType.startsWith("image/") ? (
+                <img src={file.url} alt="preview" className="w-24 h-24 object-cover rounded-lg border" />
+              ) : (
+                <div className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2">
+                  📄 File<br />{file.mimeType.split("/")[1] || "File"}
+                </div>
+              )}
+            </div>
+          ))
+        }
+          </div>
+        }
         <div
           className={`${
             message.role === "user" 
@@ -210,7 +232,9 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
               ? "rgb(32,32,33)" 
               : message.messageType === "code"
                 ? "rgb(30,30,30)" // Darker background for code messages
-                : "rgb(49,48,49)"
+                :message_to_be_shown
+                ? "rgb(49,48,49)"
+                :""
           }}
         >
           {message.role === "user" && message.messageType === "code" && (
@@ -245,7 +269,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
                 ]}
                 components={components}
               >
-                {message.content}
+                {message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()}
               </ReactMarkdown>
             </div>
           )}

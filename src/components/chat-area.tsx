@@ -29,9 +29,9 @@ interface ChatInputProps {
 
 const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInputProps) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { isEditorOpen, isRecording, waveformRef } = useChat();
+  const { isEditorOpen, isRecording, waveformRef , uploadedFiles, setUploadedFiles } = useChat();
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string }[]>([]);
+  
   const [uploadingFiles, setUploadingFiles] = useState<{ id: string, mimeType: string }[]>([]);
   
 
@@ -48,7 +48,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
       );
 
       // Remove from uploaded files
-      setUploadedFiles(prev => prev.filter(file => file.uuid !== uuid));
+      setUploadedFiles(uploadedFiles.filter(file => file.uuid !== uuid));
     } catch (error) {
       console.error('Error deleting file:', error);
     }
@@ -86,7 +86,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
   
     // Remove uploaded files from uploading state
     setUploadingFiles(prev => prev.filter(f => !newUploadingFiles.find(nf => nf.id === f.id)));
-    setUploadedFiles((prev) => [...prev, ...uploaded]);
+    setUploadedFiles([...uploadedFiles, ...uploaded]);
   };
 
   useEffect(() => {
@@ -214,7 +214,7 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
             <Button
               type="submit"
               size="sm"
-              disabled={!input.trim() || isLoading || isTranscribing || isRecording}
+              disabled={ (!input.trim() && uploadedFiles.length==0 ) || isLoading || isTranscribing || isRecording}
               className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
             >
               {isLoading || isTranscribing || isRecording ? <Square size={16} /> : <Send size={16} />}
@@ -233,7 +233,7 @@ interface ChatAreaProps {
 }
 
 export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
-  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage ,isEditorOpen , updateChatTitle , editingCode, setIsEditorOpen , setEditingCode } = useChat();
+  const { getCurrentChat, addMessage, createNewChat, currentChatId, setMessage ,isEditorOpen , updateChatTitle , editingCode, setIsEditorOpen , setEditingCode , uploadedFiles,setUploadedFiles } = useChat();
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -254,26 +254,56 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
-
+    if ((!input.trim() && uploadedFiles.length==0) || isLoading) return;
+  
     const userMessage = input.trim();
+    const final_uploaded_files = uploadedFiles;
     setIsLoading(true);
     setInput("");
-
-    // Create new chat if none exists
+    setUploadedFiles([]);
+  
     if (!currentChatId) {
       createNewChat();
-      // Wait a bit for the chat to be created
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-
-    // Add user message and get its ID
-    const userMessageId = addMessage(userMessage, "user");
-    console.log("userMessageId-", userMessageId)
-    
-    // Create empty assistant message and get its ID
+  
+    let uploaded_content = "<uploaded_content>\n";
+    let image_num = 0;
+    let file_num = 0;
+  
+    // Ensure all uploaded file processing completes
+    await Promise.all(
+      final_uploaded_files.map(async (file) => {
+        try {
+          const response = await fetch("api/process-file", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ url: file.url, mimeType: file.mimeType }),
+          });
+  
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+  
+          const content = await response.text();
+          if (file.mimeType.startsWith("image/")) {
+            uploaded_content += `Uploaded image ${++image_num}: `;
+          } else {
+            uploaded_content += `Uploaded file ${++file_num}: `;
+          }
+          uploaded_content += content + "\n";
+        } catch (err) {
+          console.error("Error processing file:", file, err);
+        }
+      })
+    );
+    uploaded_content+="</uploaded_content>\n";
+  
+    const userMessageId = addMessage(uploaded_content+userMessage, "user",final_uploaded_files);
     const assistantMessageId = addMessage("", "assistant");
-
+  
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -281,39 +311,37 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...(getCurrentChat()?.messages || []), { role: "user", content: userMessage }],
+          messages: [...(getCurrentChat()?.messages || []), {
+            role: "user",
+            content: uploaded_content + userMessage,
+          }],
           assistantMessageId,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
+  
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
-
+  
       if (reader) {
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = decoder.decode(value, { stream: true });
-            assistantMessage += chunk;
-            setMessage(assistantMessageId, assistantMessage);
-          }
-        } catch (streamError) {
-          console.error("Stream reading error:", streamError);
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+  
+          const chunk = decoder.decode(value, { stream: true });
+          assistantMessage += chunk;
+          setMessage(assistantMessageId, assistantMessage);
         }
       }
-
+  
       if (!assistantMessage) {
         setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.");
       }
-
-      // Generate title if this is one of the first messages
+  
       if (getCurrentChat()!.messages.length <= 1) {
         try {
           const titleResponse = await fetch("/api/generate-title", {
@@ -322,32 +350,25 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              messages: [{ role: "user", content: userMessage }],
+              messages: [{ role: "user", content: uploaded_content + userMessage }],
             }),
           });
-
-          if (!titleResponse.ok) {
-            throw new Error(`HTTP error! status: ${titleResponse.status}`);
-          }
-
+  
+          if (!titleResponse.ok) throw new Error(`HTTP error! status: ${titleResponse.status}`);
+  
           const titleReader = titleResponse.body?.getReader();
           const titleDecoder = new TextDecoder();
           let newTitle = "";
-
+  
           if (titleReader) {
-            try {
-              while (true) {
-                const { done, value } = await titleReader.read();
-                if (done) break;
-
-                const chunk = titleDecoder.decode(value, { stream: true });
-                newTitle += chunk;
-                // Remove quotes and clean up the title
-                const cleanTitle = newTitle.replace(/["']/g, '').trim();
-                updateChatTitle(currentChat!.id, cleanTitle);
-              }
-            } catch (streamError) {
-              console.error("Title streaming error:", streamError);
+            while (true) {
+              const { done, value } = await titleReader.read();
+              if (done) break;
+  
+              const chunk = titleDecoder.decode(value, { stream: true });
+              newTitle += chunk;
+              const cleanTitle = newTitle.replace(/["']/g, "").trim();
+              updateChatTitle(currentChat!.id, cleanTitle);
             }
           }
         } catch (error) {
@@ -361,6 +382,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
       setIsLoading(false);
     }
   };
+  
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -373,7 +395,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     if (!editingCode) return;
 
     // Add the code as a user message with special formatting
-    const userMessageId = addMessage(`\`\`\`${editingCode.language}\n${code}\n\`\`\``, "user", "code");
+    const userMessageId = addMessage(`\`\`\`${editingCode.language}\n${code}\n\`\`\``, "user",[],"code");
     const assistantMessageId = addMessage("", "assistant");
     setIsLoading(true)
     try {
@@ -468,6 +490,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
                     id: "loading",
                     role: "assistant",
                     content: "",
+                    uploads:[],
                     timestamp: new Date(),
                   }}
                   isLoading={true}

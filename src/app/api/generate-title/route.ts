@@ -12,7 +12,7 @@ export async function POST(request: Request) {
         content: msg.content,
       })),
       system:
-        "Generate a concise, descriptive title (max 5 words) for a chat based on the first message. The title should capture the main topic or intent of the conversation. Do not include any quotes or special characters in the title. Return only the plain text title.",
+        "Generate a concise, descriptive title (maximum 5 words) for a chat based on the first message. If the message includes uploaded files or images described within tags like <uploaded_content>...</uploaded_content>, use those descriptions too to infer the main topic. If there is no meaningful user message but only uploaded content, summarize what the uploads are about and generate a relevant title. Return only the plain text title without quotes or special characters. Sometimes uploaded content are the main topics so generate title accordingly. ",
       temperature: 0.7,
       maxTokens: 1000,
     })

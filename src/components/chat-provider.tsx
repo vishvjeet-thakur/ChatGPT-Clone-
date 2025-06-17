@@ -9,6 +9,7 @@ interface Chat {
     id: string
     role: "user" | "assistant"
     content: string
+    uploads: { url: string, mimeType: string, uuid: string }[]
     timestamp: Date
     messageType?: "code" | "chat"
   }>
@@ -25,13 +26,15 @@ interface ChatContextType {
   isEditorOpen: boolean | null
   editingCode:  CodeInterface | null
   isRecording: boolean 
+  uploadedFiles: { url: string, mimeType: string, uuid: string }[]
+  setUploadedFiles: (file:{ url: string, mimeType: string, uuid: string }[]) => void
   setIsRecording: (val: boolean) => void
   setEditingCode: (code: CodeInterface | null) => void
   setIsEditorOpen: (val: boolean) => void
   createNewChat: () => void
   selectChat: (id: string) => void
   deleteChat: (id: string) => void
-  addMessage: (content: string, role: "user" | "assistant", messageType?: "code" | "chat") => string
+  addMessage: (content: string, role: "user" | "assistant",uploads?:{ url: string, mimeType: string, uuid: string }[], messageType?: "code" | "chat") => string
   getCurrentChat: () => Chat | null
   setMessage: (messageId: string, content: string) => void
   updateChatTitle: (chatId: string, title: string) => void
@@ -47,6 +50,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [editingCode, setEditingCodeState] = useState< CodeInterface | null>(null)
   const [isRecording, setIsRecording] = useState(false);
   const waveformRef = useRef<HTMLDivElement | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string }[]>([]);
 
   const setEditingCode = (code:CodeInterface | null) => {
     setEditingCodeState(code);
@@ -89,7 +93,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   }
 
-  const addMessage = (content: string, role: "user" | "assistant", messageType: "code" | "chat" = "chat") => {
+  const addMessage = (content: string, role: "user" | "assistant",  uploads: { url: string, mimeType: string, uuid: string }[]=[] , messageType: "code" | "chat" = "chat") => {
     if (!currentChatId) return ""
 
     const messageId = generateUniqueId()
@@ -97,6 +101,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       id: messageId,
       role,
       content,
+      uploads,
       timestamp: new Date(),
       messageType
     }
@@ -147,6 +152,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         editingCode,
         isRecording,
         waveformRef,
+        uploadedFiles,
+        setUploadedFiles,
         setIsRecording,
         setEditingCode,
         setIsEditorOpen,

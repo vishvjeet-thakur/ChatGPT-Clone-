@@ -2,6 +2,7 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  uploads: { url: string, mimeType: string, uuid: string }[]
   timestamp: Date;
 }
 
