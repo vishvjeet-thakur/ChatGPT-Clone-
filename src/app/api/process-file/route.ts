@@ -1,15 +1,19 @@
-import { getDocument } from 'pdfjs-dist';
+
 import { NextResponse } from 'next/server';
 import { Groq } from 'groq-sdk';
+import PDFParser from 'pdf2json';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
 
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
-});
+}); 
 
 export async function POST(req: Request) {
   try {
     const { url, mimeType }: { url: string; mimeType: string } = await req.json();
-    console.log("url",url)
+    console.log("url", url);
 
     if (mimeType.startsWith('image/')) {
       const chatCompletion = await groq.chat.completions.create({
@@ -34,24 +38,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ type: 'image', content: description });
     }
 
-    // ✅ PDF Handling using pdfjs-dist
+    // ✅ PDF Handling using pdf2json
     if (mimeType === 'application/pdf') {
-      const response = await fetch(url);
-      console.log(response)
-      const arrayBuffer = await response.arrayBuffer();
-      const pdf = await getDocument({ data: arrayBuffer }).promise;
-
-      let fullText = '';
-      for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const pageText = content.items.map((item: any) => item.str).join(' ');
-        fullText += pageText + '\n';
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch PDF: ${response.status} ${response.statusText}`);
+        }
+      
+        const buffer = await response.arrayBuffer();
+        const tempFilePath = path.join(os.tmpdir(), `pdf-${Date.now()}.pdf`);
+        await fs.writeFile(tempFilePath, Buffer.from(buffer));
+      
+        const pdfParser = new PDFParser();
+      
+        const extractedText: string = await new Promise((resolve, reject) => {
+          pdfParser.on("pdfParser_dataError", err => {
+            reject(err.parserError);
+          });
+      
+          pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+            try {
+              const pages = pdfData?.Pages;
+              if (!pages || !Array.isArray(pages)) {
+                return reject(new Error('Invalid PDF structure: no pages found'));
+              }
+      
+              let result = '';
+              for (const page of pages) {
+                for (const textItem of page.Texts) {
+                  for (const r of textItem.R) {
+                    result += decodeURIComponent(r.T) + ' ';
+                  }
+                }
+                result += '\n';
+              }
+      
+              resolve(result.trim());
+            } catch (err) {
+              reject(err);
+            }
+          });
+      
+          pdfParser.loadPDF(tempFilePath);
+        });
+      
+        return NextResponse.json({ type: 'pdf', content: extractedText.slice(0, 3000) });
       }
-
-      return NextResponse.json({ type: 'pdf', content: fullText.trim().slice(0, 3000) });
-    }
-
     // ✅ Plain text files
     if (mimeType.startsWith('text/')) {
       const response = await fetch(url);
