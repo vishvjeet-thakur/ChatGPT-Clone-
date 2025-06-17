@@ -219,8 +219,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       prev.map((chat) =>
         chat._id === chatId ? { ...chat, title } : chat
       )
-    )
-  }
+    );
+
+    if (isSignedIn && userId) {
+      fetch('/api/chats', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatId,
+          title,
+          messages: chats.find(chat => chat._id === chatId)?.messages || []
+        })
+      }).catch(error => {
+        console.error('Error updating chat title:', error)
+      });
+    }
+  };
 
   return (
     <ChatContext.Provider

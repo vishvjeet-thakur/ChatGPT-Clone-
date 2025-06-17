@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from "@/components/chat-provider"
+import {Input} from "@/components/ui/input"
 import {
   PenSquare,
   Search,
@@ -18,6 +19,8 @@ import {
   PanelLeftClose,
   Sparkles,
   Loader2,
+  Check,
+  X,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -27,8 +30,10 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
-  const { chats, currentChatId, createNewChat, selectChat, deleteChat, isEditorOpen, isLoading } = useChat()
+  const { chats, currentChatId, createNewChat, selectChat, deleteChat, isEditorOpen, isLoading, updateChatTitle } = useChat()
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -48,6 +53,42 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen, onToggle, isEditorOpen])
+
+  useEffect(() => {
+    if (editingId && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [editingId])
+
+  const handleRename = (chatId: string) => {
+    const chat = chats.find(c => c._id === chatId)
+    if (chat) {
+      setEditingTitle(chat.title)
+      setEditingId(chatId)
+    }
+  }
+
+  const handleSaveRename = () => {
+    if (editingId && editingTitle.trim()) {
+      updateChatTitle(editingId, editingTitle.trim())
+      setEditingId(null)
+      setEditingTitle("")
+    }
+  }
+
+  const handleCancelRename = () => {
+    setEditingId(null)
+    setEditingTitle("")
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveRename()
+    } else if (e.key === 'Escape') {
+      handleCancelRename()
+    }
+  }
 
   if (!isOpen) return null
 
@@ -144,10 +185,37 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       onClick={() => selectChat(chat._id)}
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        {/* <MessageSquare size={14} className="flex-shrink-0 text-gray-400" /> */}
-                        <span className="truncate text-gray-200 max-w-[180px]">
-                          {chat.title}
-                        </span>
+                        {editingId === chat._id ? (
+                          <div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
+                            <Input
+                              ref={inputRef}
+                              value={editingTitle}
+                              onChange={(e) => setEditingTitle(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              className="h-6 text-sm bg-gray-800 border-gray-700 text-white focus:ring-0 focus-visible:ring-0"
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-green-400 hover:text-green-300 hover:bg-gray-600"
+                              onClick={handleSaveRename}
+                            >
+                              <Check size={14} />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-gray-600"
+                              onClick={handleCancelRename}
+                            >
+                              <X size={14} />
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="truncate text-gray-200 max-w-[180px]">
+                            {chat.title}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex-shrink-0">
@@ -166,7 +234,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setEditingId(chat._id);
+                                handleRename(chat._id);
                               }}
                               className="text-gray-200 focus:bg-gray-700 focus:text-white"
                             >
