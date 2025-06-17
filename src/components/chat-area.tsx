@@ -170,8 +170,8 @@ const ChatInput = ({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInpu
               </div>
             ))}
             {/* Show uploaded files */}
-            {uploadedFiles.map((file, idx) => (
-              <div key={idx} className="relative group">
+            {uploadedFiles.map((file) => (
+              <div key={file.uuid} className="relative group">
                 <button
                   type="button"
                   onClick={() => handleDeleteFile(file.uuid)}
@@ -309,7 +309,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     );
     uploaded_content+="</uploaded_content>\n";
   
-    const userMessageId = addMessage(uploaded_content+userMessage, "user",final_uploaded_files);
+    const userMessageId = addMessage(uploaded_content+userMessage, "user", final_uploaded_files);
     const assistantMessageId = addMessage("", "assistant");
   
     try {
@@ -376,7 +376,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
               const chunk = titleDecoder.decode(value, { stream: true });
               newTitle += chunk;
               const cleanTitle = newTitle.replace(/["']/g, "").trim();
-              updateChatTitle(currentChat!.id, cleanTitle);
+              updateChatTitle(currentChatId!, cleanTitle);
             }
           }
         } catch (error) {

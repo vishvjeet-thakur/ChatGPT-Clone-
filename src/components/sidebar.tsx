@@ -132,11 +132,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 <div className="space-y-1">
                   {chats.map((chat) => (
                     <div
-                      key={chat.id}
+                      key={chat._id}
                       className={`group flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-gray-700 ${
-                        currentChatId === chat.id ? "bg-gray-700" : ""
+                        currentChatId === chat._id ? "bg-gray-700" : ""
                       }`}
-                      onClick={() => selectChat(chat.id)}
+                      onClick={() => selectChat(chat._id)}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <MessageSquare size={14} className="flex-shrink-0 text-gray-400" />
@@ -158,14 +158,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-32 bg-gray-800 border-gray-600">
                           <DropdownMenuItem
-                            onClick={() => setEditingId(chat.id)}
+                            onClick={() => setEditingId(chat._id)}
                             className="text-gray-200 focus:bg-gray-700 focus:text-white"
                           >
                             <Edit3 size={12} className="mr-2" />
                             Rename
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => deleteChat(chat.id)}
+                            onClick={() => deleteChat(chat._id)}
                             className="text-red-400 focus:bg-red-600 focus:text-white"
                           >
                             <Trash2 size={12} className="mr-2" />

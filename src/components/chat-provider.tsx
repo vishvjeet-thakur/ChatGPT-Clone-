@@ -1,84 +1,122 @@
 "use client"
 
-import { createContext, useContext, useRef, useState, type ReactNode } from "react"
+import React, { createContext, useContext, useRef, useState, useEffect, type ReactNode } from "react"
+import { useAuth } from "@clerk/nextjs"
+import { v4 as uuidv4 } from "uuid"
+import { Chat, Message } from "@/types/chat"
 
-interface Chat {
-  id: string
-  title: string
-  messages: Array<{
-    id: string
-    role: "user" | "assistant"
-    content: string
-    uploads: { url: string, mimeType: string, uuid: string }[]
-    timestamp: Date
-    messageType?: "code" | "chat"
-  }>
-}
-
-interface CodeInterface{
+interface CodeInterface {
   code: string
-  language :string
+  language: string
 }
 
 interface ChatContextType {
   chats: Chat[]
   currentChatId: string | null
   isEditorOpen: boolean | null
-  editingCode:  CodeInterface | null
-  isRecording: boolean 
+  editingCode: CodeInterface | null
+  isRecording: boolean
   uploadedFiles: { url: string, mimeType: string, uuid: string }[]
-  setUploadedFiles: (file:{ url: string, mimeType: string, uuid: string }[]) => void
+  setUploadedFiles: (file: { url: string, mimeType: string, uuid: string }[]) => void
   setIsRecording: (val: boolean) => void
   setEditingCode: (code: CodeInterface | null) => void
   setIsEditorOpen: (val: boolean) => void
   createNewChat: () => void
   selectChat: (id: string) => void
   deleteChat: (id: string) => void
-  addMessage: (content: string, role: "user" | "assistant",uploads?:{ url: string, mimeType: string, uuid: string }[], messageType?: "code" | "chat") => string
+  addMessage: (content: string, role: "user" | "assistant", uploads?: { url: string, mimeType: string, uuid: string }[], messageType?: "code" | "chat") => string
   getCurrentChat: () => Chat | null
   setMessage: (messageId: string, content: string) => void
   updateChatTitle: (chatId: string, title: string) => void
-  waveformRef: React.RefObject<HTMLDivElement|null>;
+  waveformRef: React.RefObject<HTMLDivElement | null>
 }
 
-const ChatContext = createContext<ChatContextType | null>(null)
+const ChatContext = createContext<ChatContextType | undefined>(undefined)
 
 export function ChatProvider({ children }: { children: ReactNode }) {
+  const { userId, isSignedIn } = useAuth()
   const [chats, setChats] = useState<Chat[]>([])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
-  const [isEditorOpen , setIsEditorOpen] = useState<boolean | null >(false)
-  const [editingCode, setEditingCodeState] = useState< CodeInterface | null>(null)
-  const [isRecording, setIsRecording] = useState(false);
-  const waveformRef = useRef<HTMLDivElement | null>(null);
-  const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string }[]>([]);
+  const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false)
+  const [editingCode, setEditingCode] = useState<CodeInterface | null>(null)
+  const [isRecording, setIsRecording] = useState<boolean>(false)
+  const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string }[]>([])
+  const waveformRef = useRef<HTMLDivElement | null>(null)
 
-  const setEditingCode = (code:CodeInterface | null) => {
-    setEditingCodeState(code);
-  }
+  // Load chats from database when user signs in
+  useEffect(() => {
+    if (isSignedIn && userId) {
+      fetch('/api/chats')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            console.log(data)
+            setChats(data)
+            if (data.length > 0) {
+              setCurrentChatId(data[0]._id)
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error loading chats:', error)
+        })
+    }
+  }, [isSignedIn, userId])
 
-
-  const generateUniqueId = () => {
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).substring(2, 8)
-    return `${timestamp}-${random}`
-  }
+  // Save chats to database when they change
+  useEffect(() => {
+    if (isSignedIn && userId && chats.length > 0) {
+      const currentChat = chats.find(chat => chat._id === currentChatId)
+      console.log(currentChat)
+      if (currentChat) {
+        fetch('/api/chats', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chatId: currentChat._id,
+            title: currentChat.title,
+            messages: currentChat.messages
+          })
+        }).catch(error => {
+          console.error('Error saving chat:', error)
+        })
+      }
+    }
+  }, [chats, currentChatId, isSignedIn, userId])
 
   const createNewChat = () => {
-    const newChat: Chat = {
-      id: generateUniqueId(),
-      title: "New chat",
+    const newChat: Omit<Chat, '_id' | 'userId'> = {
+      title: "New Chat",
       messages: [],
     }
-    setChats((prev) => [newChat, ...prev])
-    setCurrentChatId(newChat.id)
-  }
 
-  const updateChatTitle = (chatId: string, title: string) => {
-    setChats(prevChats => 
-      prevChats.map(chat => 
-        chat.id === chatId ? { ...chat, title } : chat
-      )
-    )
+    setChats((prev) => [newChat as Chat, ...prev])
+    setCurrentChatId(null)
+
+    if (isSignedIn && userId) {
+      fetch('/api/chats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newChat.title,
+          messages: newChat.messages
+        })
+      })
+      .then(res => res.json())
+      .then(savedChat => {
+        setChats(prev => prev.map(chat => 
+          chat === newChat ? savedChat : chat
+        ));
+        setCurrentChatId(savedChat._id);
+      })
+      .catch(error => {
+        console.error('Error creating chat:', error)
+      })
+    }
   }
 
   const selectChat = (id: string) => {
@@ -86,18 +124,29 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const deleteChat = (id: string) => {
-    setChats((prev) => prev.filter((chat) => chat.id !== id))
+    setChats((prev) => prev.filter((chat) => chat._id !== id))
     if (currentChatId === id) {
       setCurrentChatId(null)
     }
 
+    if (isSignedIn && userId) {
+      fetch('/api/chats', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ chatId: id })
+      }).catch(error => {
+        console.error('Error deleting chat:', error)
+      })
+    }
   }
 
-  const addMessage = (content: string, role: "user" | "assistant",  uploads: { url: string, mimeType: string, uuid: string }[]=[] , messageType: "code" | "chat" = "chat") => {
+  const addMessage = (content: string, role: "user" | "assistant", uploads: { url: string, mimeType: string, uuid: string }[] = [], messageType: "code" | "chat" = "chat") => {
     if (!currentChatId) return ""
 
-    const messageId = generateUniqueId()
-    const newMessage = {
+    const messageId = uuidv4()
+    const newMessage: Message = {
       id: messageId,
       role,
       content,
@@ -108,7 +157,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     setChats((prev) =>
       prev.map((chat) => {
-        if (chat.id === currentChatId) {
+        if (chat._id === currentChatId) {
           const updatedChat = {
             ...chat,
             messages: [...chat.messages, newMessage],
@@ -129,7 +178,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }
 
   const getCurrentChat = () => {
-    return chats.find((chat) => chat.id === currentChatId) || null
+    return chats.find((chat) => chat._id === currentChatId) || null
   }
 
   const setMessage = (messageId: string, content: string) => {
@@ -140,6 +189,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           msg.id === messageId ? { ...msg, content } : msg
         ),
       }))
+    )
+  }
+
+  const updateChatTitle = (chatId: string, title: string) => {
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat._id === chatId ? { ...chat, title } : chat
+      )
     )
   }
 
@@ -164,7 +221,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         getCurrentChat,
         setMessage,
         updateChatTitle,
-        
       }}
     >
       {children}
@@ -174,8 +230,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
 export function useChat() {
   const context = useContext(ChatContext)
-  if (!context) {
-    throw new Error("useChat must be used within ChatProvider")
+  if (context === undefined) {
+    throw new Error("useChat must be used within a ChatProvider")
   }
   return context
 }

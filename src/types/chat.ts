@@ -2,14 +2,16 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  uploads: { url: string, mimeType: string, uuid: string }[]
+  uploads: { url: string, mimeType: string, uuid: string }[];
   timestamp: Date;
+  messageType?: 'code' | 'chat';
 }
 
 export interface Chat {
-  id: string;
+  _id: string;
+  userId: string;
   title: string;
   messages: Message[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 } 
