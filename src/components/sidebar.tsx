@@ -138,41 +138,48 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                       }`}
                       onClick={() => selectChat(chat._id)}
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <MessageSquare size={14} className="flex-shrink-0 text-gray-400" />
-                        <span className="truncate text-gray-200 text-ellipsis overflow-hidden whitespace-nowrap">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className="truncate text-gray-200 max-w-[180px]">
                           {chat.title}
                         </span>
                       </div>
 
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-600 flex-shrink-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal size={12} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-32 bg-gray-800 border-gray-600">
-                          <DropdownMenuItem
-                            onClick={() => setEditingId(chat._id)}
-                            className="text-gray-200 focus:bg-gray-700 focus:text-white"
-                          >
-                            <Edit3 size={12} className="mr-2" />
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => deleteChat(chat._id)}
-                            className="text-red-400 focus:bg-red-600 focus:text-white"
-                          >
-                            <Trash2 size={12} className="mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex-shrink-0">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-600"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal size={12} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32 bg-gray-800 border-gray-600">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingId(chat._id);
+                              }}
+                              className="text-gray-200 focus:bg-gray-700 focus:text-white"
+                            >
+                              <Edit3 size={12} className="mr-2" />
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteChat(chat._id);
+                              }}
+                              className="text-red-400 focus:bg-red-600 focus:text-white"
+                            >
+                              <Trash2 size={12} className="mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   ))}
                 </div>
