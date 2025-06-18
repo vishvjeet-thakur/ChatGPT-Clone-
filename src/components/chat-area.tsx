@@ -245,7 +245,6 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
           }),
         })
         const memory_added = await memory_response.json();
-        console.log("memory_added",memory_added)
         }
 
       // Handle empty responses
@@ -253,39 +252,53 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
         setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.")
       }
   
-      // Generate chat title for new conversations
+      // Add to memory and generate title in parallel (if needed)
+      const parallelTasks: Promise<any>[] = [];
+      if (userId) {
+        const memoryPromise = fetch('api/memory', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ interaction, userId }),
+        }).then(res => res.json());
+        parallelTasks.push(memoryPromise);
+      }
       if (getCurrentChat()!.messages.length <= 1) {
-        try {
-          const titleResponse = await fetch("/api/generate-title", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              messages: [{ role: "user", content: uploaded_content + userMessage }],
-            }),
-          })
-  
-          if (!titleResponse.ok) throw new Error(`HTTP error! status: ${titleResponse.status}`)
-  
-          const titleReader = titleResponse.body?.getReader()
-          const titleDecoder = new TextDecoder()
-          let newTitle = ""
-  
-          if (titleReader) {
-            while (true) {
-              const { done, value } = await titleReader.read()
-              if (done) break
-  
-              const chunk = titleDecoder.decode(value, { stream: true })
-              newTitle += chunk
-              const cleanTitle = newTitle.replace(/["']/g, "").trim()
-              updateChatTitle(currentChatId!, cleanTitle)
+        const titlePromise = (async () => {
+          try {
+            const titleResponse = await fetch('/api/generate-title', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                messages: [{ role: 'user', content: uploaded_content + userMessage }],
+              }),
+            });
+            if (!titleResponse.ok) throw new Error(`HTTP error! status: ${titleResponse.status}`);
+            const titleReader = titleResponse.body?.getReader();
+            const titleDecoder = new TextDecoder();
+            let newTitle = '';
+            if (titleReader) {
+              while (true) {
+                const { done, value } = await titleReader.read();
+                if (done) break;
+                const chunk = titleDecoder.decode(value, { stream: true });
+                newTitle += chunk;
+                const cleanTitle = newTitle.replace(/["']/g, '').trim();
+                updateChatTitle(currentChatId!, cleanTitle);
+              }
             }
+          } catch (error) {
+            console.error('Title generation error:', error);
           }
-        } catch (error) {
-          console.error("Title generation error:", error)
-        }
+        })();
+        parallelTasks.push(titlePromise);
+      }
+      // Wait for all parallel tasks to finish (optional, or just fire and forget)
+      if (parallelTasks.length > 0) {
+        Promise.all(parallelTasks).catch(console.error);
       }
     } catch (error) {
       console.error("Chat error:", error)
