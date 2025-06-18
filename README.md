@@ -1,36 +1,299 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ChatGPT Clone
 
-## Getting Started
+A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web technologies. This application provides a complete chat experience with file uploads, voice recording, code editing, and real-time streaming responses using Groq's fast AI models.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Core Chat Functionality
+
+- **Real-time streaming responses** - Get instant, streaming responses from Groq's AI models
+- **Message history** - Persistent chat history with local storage and database sync
+- **Markdown rendering** - Rich text formatting with code syntax highlighting
+- **Code block editing** - Edit and analyze code directly in the chat interface
+- **File upload support** - Upload images, PDFs, documents, and text files
+- **Voice recording** - Record and transcribe audio messages
+- **Responsive design** - Works seamlessly on desktop and mobile devices
+
+### Advanced Features
+
+- **User authentication** - Sign up/sign in with Clerk authentication
+- **Local storage support** - Works offline for unsigned users
+- **Database integration** - MongoDB for signed users with automatic sync
+- **File processing** - AI analyzes uploaded files and extracts content
+- **Code analysis** - Dedicated code editor with syntax highlighting
+- **Search functionality** - Search through chat history
+- **Theme support** - Dark theme optimized for coding and reading
+
+### Technical Features
+
+- **TypeScript** - Full type safety throughout the application
+- **Next.js 14** - Latest React framework with App Router
+- **Tailwind CSS** - Utility-first styling
+- **Monaco Editor** - Professional code editing experience
+- **Uploadcare** - Reliable file upload and CDN service
+- **Clerk** - Modern authentication solution
+- **Groq** - Fast AI inference platform
+
+## 🏗️ Architecture
+
+### Frontend Structure
+
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── api/               # API routes for backend functionality
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout with providers
+│   └── page.tsx           # Main chat interface
+├── components/            # Reusable React components
+│   ├── ui/               # Base UI components (buttons, inputs, etc.)
+│   ├── chat-area.tsx     # Main chat interface
+│   ├── chat-input.tsx    # Input component with file upload & voice
+│   ├── message.tsx       # Individual message display
+│   ├── sidebar.tsx       # Chat history sidebar
+│   └── code-editor.tsx   # Monaco editor for code editing
+├── lib/                  # Utility functions and configurations
+├── models/               # MongoDB schemas
+└── types/                # TypeScript type definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Backend API Routes
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `/api/chat` - Main chat endpoint with streaming responses using Groq
+- `/api/chats` - Chat management (CRUD operations)
+- `/api/code` - Code analysis and feedback using Groq
+- `/api/transcribe` - Audio transcription
+- `/api/process-file` - File content extraction
+- `/api/generate-title` - Automatic chat title generation using Groq
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Technology Stack
 
-## Learn More
+### Frontend
 
-To learn more about Next.js, take a look at the following resources:
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type-safe JavaScript
+- **Tailwind CSS** - Utility-first CSS framework
+- **React Markdown** - Markdown rendering
+- **Monaco Editor** - Code editor component
+- **Lucide React** - Icon library
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Backend & Services
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Next.js API Routes** - Serverless API endpoints
+- **MongoDB** - Database for chat storage
+- **Clerk** - Authentication service
+- **Uploadcare** - File upload and CDN
+- **Groq API** - Fast AI chat completions and code analysis
 
-## Deploy on Vercel
+### Development Tools
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+- **TypeScript** - Static type checking
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📦 Installation & Setup
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- MongoDB database
+- Groq API key
+- Clerk account
+- Uploadcare account
+
+### Environment Variables
+
+Create a `.env.local` file in the root directory:
+
+```env
+# Groq AI
+GROQ_API_KEY=your_groq_api_key
+
+# MongoDB
+MONGODB_URI=your_mongodb_connection_string
+
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+
+# Uploadcare
+NEXT_PUBLIC_UPLOADCARE_API_KEY=your_uploadcare_public_key
+NEXT_PUBLIC_UPLOADCARE_SECRET_KEY=your_uploadcare_secret_key
+```
+
+### Installation Steps
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd chatgpt-clone
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+
+   - Copy `.env.example` to `.env.local`
+   - Fill in your API keys and configuration
+
+4. **Run the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   - Navigate to `http://localhost:3000`
+
+## 🔧 Configuration
+
+### Database Setup
+
+The application uses MongoDB for storing chat data. Ensure your MongoDB connection string is properly configured in the environment variables.
+
+### File Upload Configuration
+
+Uploadcare handles file uploads. Configure your Uploadcare keys in the environment variables to enable file upload functionality.
+
+### Authentication Setup
+
+Clerk provides authentication. Set up your Clerk application and configure the keys in the environment variables.
+
+### Groq AI Setup
+
+Groq provides fast AI inference. Get your API key from [Groq Console](https://console.groq.com/) and configure it in the environment variables.
+
+## 📱 Usage
+
+### Basic Chat
+
+1. Type your message in the input field
+2. Press Enter or click the send button
+3. View the AI's streaming response powered by Groq
+
+### File Upload
+
+1. Click the "+" button to select files
+2. Supported formats: images, PDFs, text files
+3. Files are automatically processed and analyzed by the AI
+
+### Voice Recording
+
+1. Click the microphone button to start recording
+2. Speak your message
+3. Click stop to transcribe and send
+
+### Code Editing
+
+1. Click "Edit" on any code block
+2. Modify the code in the Monaco editor
+3. Click "Save" to analyze the updated code using Groq
+
+### Chat Management
+
+- Use the sidebar to switch between chats
+- Search through chat history
+- Delete or rename chats
+
+## 🏛️ Project Architecture
+
+### State Management
+
+The application uses React Context for global state management through the `ChatProvider`. This manages:
+
+- Current chat and messages
+- File uploads
+- Editor state
+- Authentication state
+
+### Data Flow
+
+1. **User Input** → ChatInput component
+2. **File Processing** → Uploadcare → AI analysis
+3. **Message Creation** → ChatProvider → Database/Local Storage
+4. **AI Response** → Groq API → Real-time display
+5. **State Updates** → React Context → UI updates
+
+### Component Hierarchy
+
+```
+App
+├── ChatProvider (Context)
+├── Layout
+│   ├── Sidebar
+│   └── ChatArea
+│       ├── ChatHeader
+│       ├── MessageList
+│       │   └── Message
+│       │       ├── MessageContent
+│       │       ├── MessageActions
+│       │       └── MessageAttachments
+│       └── ChatInput
+│           ├── FileUpload
+│           └── VoiceRecorder
+└── CodeEditor (Modal)
+```
+
+## 🔒 Security Features
+
+- **Authentication** - Secure user authentication with Clerk
+- **File validation** - File type and size validation
+- **API rate limiting** - Protection against abuse
+- **Environment variables** - Secure configuration management
+- **CORS protection** - Cross-origin request security
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+1. Connect your GitHub repository to Vercel
+2. Configure environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### Other Platforms
+
+The application can be deployed to any platform that supports Next.js:
+
+- Netlify
+- Railway
+- DigitalOcean App Platform
+- AWS Amplify
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## �� Acknowledgments
+
+- Groq for fast AI inference
+- Vercel for Next.js framework
+- Clerk for authentication
+- Uploadcare for file handling
+- Monaco Editor for code editing
+- Tailwind CSS for styling
+
+## 📞 Support
+
+For support and questions:
+
+- Create an issue in the GitHub repository
+- Check the documentation
+- Review the code comments for implementation details
+
+---
+
+**Note**: This is a demonstration project. Ensure you comply with Groq's usage policies and implement appropriate rate limiting for production use.
