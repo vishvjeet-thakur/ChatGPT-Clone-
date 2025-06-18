@@ -18,14 +18,10 @@ import { FileViewerDialog } from "@/components/file-viewer-dialog"
  * Defines the props required for the chat input functionality
  */
 interface ChatInputProps {
-  /** Current input text value */
-  input: string
-  /** Function to update the input text */
-  setInput: (value: string) => void
   /** Whether the chat is currently loading/processing */
   isLoading: boolean
-  /** Function to handle form submission */
-  onSubmit: (e: React.FormEvent) => void
+  /** Function to handle form submission with the input text */
+  onSubmit: (inputText: string) => void
   /** Optional function to handle keyboard events */
   onKeyDown?: (e: React.KeyboardEvent) => void
 }
@@ -51,7 +47,7 @@ interface ChatInputProps {
  * @param props - ChatInputProps containing input state and handlers
  * @returns JSX element representing the chat input interface
  */
-export function ChatInput({ input, setInput, isLoading, onSubmit, onKeyDown }: ChatInputProps) {
+export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
   // Refs for DOM elements
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
@@ -59,6 +55,7 @@ export function ChatInput({ input, setInput, isLoading, onSubmit, onKeyDown }: C
   const { isEditorOpen, isRecording, waveformRef, uploadedFiles, setUploadedFiles } = useChat()
   
   // Local state for component functionality
+  const [input, setInput] = useState("")
   const [isTranscribing, setIsTranscribing] = useState(false)
   const [uploadingFiles, setUploadingFiles] = useState<{ id: string, mimeType: string }[]>([])
   const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string } | null>(null)
@@ -68,14 +65,14 @@ export function ChatInput({ input, setInput, isLoading, onSubmit, onKeyDown }: C
    * Adjusts the height of the textarea as the user types
    * Maximum height is capped at 200px with scrolling
    */
-  useEffect(() => {
-    const textarea = textareaRef.current
-    if (textarea) {
-      textarea.style.height = 'auto'
-      const newHeight = Math.min(textarea.scrollHeight, 200)
-      textarea.style.height = `${newHeight}px`
-    }
-  }, [input])
+  // useEffect(() => {
+  //   const textarea = textareaRef.current
+  //   if (textarea) {
+  //     textarea.style.height = 'auto'
+  //     const newHeight = Math.min(textarea.scrollHeight, 200)
+  //     textarea.style.height = `${newHeight}px`
+  //   }
+  // }, [input])
 
   /**
    * Deletes an uploaded file from both Uploadcare CDN and local state
@@ -212,7 +209,13 @@ export function ChatInput({ input, setInput, isLoading, onSubmit, onKeyDown }: C
   return (
     <div className={`max-w-3xl ${!isEditorOpen ? "mx-auto w-full" : "w-1/2"} pb-3`}>
       <form
-        onSubmit={onSubmit}
+        onSubmit={(e) => {
+          e.preventDefault()
+          if ((!input.trim() && uploadedFiles.length == 0) || isLoading || isTranscribing || isRecording) return
+          onSubmit(input.trim())
+          setInput("")
+          setUploadedFiles([])
+        }}
         className="w-full rounded-3xl p-2 flex flex-col"
         style={{ backgroundColor: "rgb(49,48,49)", borderColor: "rgb(96,96,64)", maxHeight: "300px" }}
       >
@@ -280,7 +283,18 @@ export function ChatInput({ input, setInput, isLoading, onSubmit, onKeyDown }: C
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={onKeyDown}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault()
+                  // Submit the form
+                  const form = e.currentTarget.closest('form')
+                  if (form) {
+                    form.requestSubmit()
+                  }
+                }
+                // Call the parent onKeyDown if provided
+                onKeyDown?.(e)
+              }}
               placeholder="Message ChatGPT..."
               className="w-full resize-none bg-gray-800 text-white placeholder:text-gray-400 border-none focus:outline-none focus:ring-0 focus:border-none"
               style={{ minHeight: "40px", maxHeight: "200px", backgroundColor: "rgb(49,48,49)" }}

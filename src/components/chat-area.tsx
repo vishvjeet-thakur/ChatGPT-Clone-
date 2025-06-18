@@ -72,7 +72,6 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
   } = useChat()
   
   // Local state for component functionality
-  const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
@@ -111,16 +110,13 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
    * - Generates chat titles for new conversations
    * - Manages loading states and error handling
    * 
-   * @param e - Form submission event
+   * @param userMessage - The user's input text
    */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if ((!input.trim() && uploadedFiles.length == 0) || isLoading) return
-  
-    const userMessage = input.trim()
+  const handleSubmit = async (userMessage: string) => {
+    if (!userMessage.trim() && uploadedFiles.length === 0) return
+    
     const final_uploaded_files = uploadedFiles
     setIsLoading(true)
-    setInput("")
     setUploadedFiles([])
   
     // Ensure we have a current chat
@@ -265,7 +261,8 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
-      handleSubmit(e)
+      
+      // The ChatInput component will handle submission internally
     }
   }
 
@@ -374,8 +371,6 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
               What's today's agenda?
             </h2>
             <ChatInput
-              input={input}
-              setInput={setInput}
               isLoading={isLoading}
               onSubmit={handleSubmit}
               onKeyDown={handleKeyDown}
@@ -416,8 +411,6 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
           
           {/* Chat Input */}
           <ChatInput
-            input={input}
-            setInput={setInput}
             isLoading={isLoading}
             onSubmit={handleSubmit}
             onKeyDown={handleKeyDown}
