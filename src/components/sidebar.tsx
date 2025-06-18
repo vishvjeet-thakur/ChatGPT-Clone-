@@ -102,7 +102,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     <>
       <div 
         ref={sidebarRef}
-        className={`w-64 flex flex-col h-full bg-gray-50 dark:bg-gray-900 ${isEditorOpen ? "fixed inset-y-0 left-0 z-50" : ""}`} 
+        className={`w-72 md:w-64 flex flex-col h-full bg-gray-50 dark:bg-gray-900 fixed inset-y-0 left-0 z-50 ${isEditorOpen ? "fixed inset-y-0 left-0 z-50" : ""}`} 
         style={{ backgroundColor: "rgb(22,22,23)" }}
       >
         {/* Fixed Header */}

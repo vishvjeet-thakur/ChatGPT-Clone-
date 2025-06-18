@@ -144,9 +144,9 @@ NEXT_PUBLIC_UPLOADCARE_SECRET_KEY=your_uploadcare_secret_key
 
 4. **Run the development server**
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 
 5. **Open your browser**
    - Navigate to `http://localhost:3000`

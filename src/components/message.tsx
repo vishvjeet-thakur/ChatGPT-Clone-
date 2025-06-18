@@ -93,9 +93,9 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
       };
 
       return (
-        <div className="relative my-6 rounded-xl overflow-hidden !bg-[#171616]">
+        <div className="relative my-4 md:my-6 rounded-xl overflow-hidden !bg-[#171616] w-full">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-2 text-xs">
+          <div className="flex items-center justify-between px-3 md:px-4 py-2 text-xs">
             <span className="text-gray-100 text-xs tracking-wider">
               {match ? match[1] : "text"}
             </span>
@@ -104,12 +104,12 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
                 onClick={handleCopy}
                 className="flex text-gray-100 hover:text-white px-1 py-1 transition text-xs"
               >
-                {copied ? <Check className="h-[13px]" /> : <Copy className="h-[13px]" />}
+                {copied ? <Check className="h-[11px] md:h-[13px]" /> : <Copy className="h-[11px] md:h-[13px]" />}
                 {copied ? "Copied!" : "Copy"}
               </button>
               <button 
                 onClick={handleEdit}
-                className="flex py-1 px-1 text-xs text-gray-100 hover:text-white transition"
+                className="hidden md:flex py-1 px-1 text-xs text-gray-100 hover:text-white transition"
               >
                 <Edit className="h-[13px]" />
                 Edit
@@ -118,8 +118,8 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
           </div>
 
           {/* Code Block */}
-          <pre className="overflow-x-auto text-sm text-white m-0 p-0">
-            <code className={`${className} block ${!match ? "px-4 py-2" : ""}`} {...props}>
+          <pre className="overflow-x-auto text-xs md:text-sm text-white m-0 p-0 w-full">
+            <code className={`${className} block w-full break-words whitespace-pre-wrap ${!match ? "px-3 md:px-4 py-2" : ""}`} {...props}>
               {children}
             </code>
           </pre>
@@ -200,24 +200,24 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
   const message_to_be_shown = message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()
 
   return (
-    <div className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
+    <div className={`flex gap-2 md:gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
       <div className={`flex-1 ${message.role === "user" ? "order-first" : ""} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
         {
           message.uploads.length>0 &&
           <div className="flex justify-end">
             {
               message.uploads.map((file, idx) => (
-                <div key={idx} className="relative group ml-3">
+                <div key={idx} className="relative group ml-2 md:ml-3">
                   {file.mimeType.startsWith("image/") ? (
                     <img 
                       src={file.url} 
                       alt="preview" 
-                      className="w-24 h-24 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
+                      className="w-16 h-16 md:w-24 md:h-24 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
                       onClick={() => setSelectedFile(file)}
                     />
                   ) : (
                     <div 
-                      className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2 cursor-pointer hover:bg-gray-600 transition-colors"
+                      className="w-16 h-16 md:w-24 md:h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-1 md:p-2 cursor-pointer hover:bg-gray-600 transition-colors"
                       onClick={() => setSelectedFile(file)}
                     >
                       📄 File<br />{file.mimeType.split("/")[1] || "File"}
@@ -232,9 +232,9 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
           className={`${
             message.role === "user" 
               ? message.messageType === "code"
-                ? "bg-[#1E1E1E] rounded-lg p-4" // Special styling for code messages
-                : "text-white ml-auto max-w-lg rounded-3xl p-2 pl-5"
-              : "text-white p-2"
+                ? "bg-[#1E1E1E] rounded-lg p-3 md:p-4" // Special styling for code messages
+                : "text-white ml-auto max-w-[85%] md:max-w-lg rounded-2xl md:rounded-3xl p-2 md:p-3 pl-4 md:pl-5"
+              : "text-white p-2 md:p-3"
           }`}
           style={{
             backgroundColor: message.role === "assistant" 
@@ -268,7 +268,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
               </div>
             </div>
           ) : (
-            <div className="prose prose-neutral dark:prose-invert max-w-none">
+            <div className="prose prose-neutral dark:prose-invert max-w-none text-sm md:text-base">
               <ReactMarkdown
                 remarkPlugins={[[remarkGfm, { breaks: true }]]}
                 rehypePlugins={[
@@ -285,24 +285,24 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
         </div>
 
         {message.role === "assistant" && !isLoading && (
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-1 md:gap-2 mt-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={copyToClipboard}
-              className="h-8 px-2 text-gray-400 hover:text-gray-200 hover:bg-gray-700"
+              className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700"
             >
-              <Copy size={14} />
+              <Copy size={12} className="md:w-3.5 md:h-3.5" />
               {copied ? "Copied!" : ""}
             </Button>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
-              <ThumbsUp size={14} />
+            <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
+              <ThumbsUp size={12} className="md:w-3.5 md:h-3.5" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
-              <ThumbsDown size={14} />
+            <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
+              <ThumbsDown size={12} className="md:w-3.5 md:h-3.5" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-8 px-2 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
-              <RotateCcw size={14} />
+            <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
+              <RotateCcw size={12} className="md:w-3.5 md:h-3.5" />
             </Button>
           </div>
         )}
