@@ -26,10 +26,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, messages } = await req.json();
+    const { id, title, messages } = await req.json();
     await connectDB();
 
     const chat = new Chat({
+      id,
       userId,
       title,
       messages

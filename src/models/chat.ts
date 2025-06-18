@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true
+  },
   role: {
     type: String,
     enum: ['user', 'assistant'],
@@ -27,6 +31,11 @@ const messageSchema = new mongoose.Schema({
 });
 
 const chatSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: true,
+    unique: true
+  },
   userId: {
     type: String,
     required: true,

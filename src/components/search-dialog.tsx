@@ -82,8 +82,8 @@ export function SearchDialog({ isOpen, onClose }: SearchDialogProps) {
               ) : (
                 filteredChats.map((chat) => (
                   <button
-                    key={chat._id}
-                    onClick={() => handleChatSelect(chat._id)}
+                    key={chat.id}
+                    onClick={() => handleChatSelect(chat.id)}
                     className="w-full text-left p-3 rounded-lg hover:bg-[rgb(81,83,81)] transition-colors"
                   >
                     <div className="text-white font-medium">{chat.title}</div>

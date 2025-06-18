@@ -38,6 +38,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
+  // Debug log to see current state
+  console.log('Sidebar - Current chats:', chats.map(c => ({ id: c.id, title: c.title })))
+  console.log('Sidebar - Current chat ID:', currentChatId)
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
@@ -64,7 +68,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   }, [editingId])
 
   const handleRename = (chatId: string) => {
-    const chat = chats.find(c => c._id === chatId)
+    const chat = chats.find(c => c.id === chatId)
     if (chat) {
       setEditingTitle(chat.title)
       setEditingId(chatId)
@@ -182,14 +186,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   <div className="space-y-1">
                     {chats.map((chat) => (
                       <div
-                        key={chat._id}
+                        key={chat.id}
                         className={`group flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-gray-700 ${
-                          currentChatId === chat._id ? "bg-gray-700" : ""
+                          currentChatId === chat.id ? "bg-gray-700" : ""
                         }`}
-                        onClick={() => selectChat(chat._id)}
+                        onClick={() => selectChat(chat.id)}
                       >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
-                          {editingId === chat._id ? (
+                          {editingId === chat.id ? (
                             <div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
                               <Input
                                 ref={inputRef}
@@ -238,7 +242,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleRename(chat._id);
+                                  handleRename(chat.id);
                                 }}
                                 className="text-gray-200 focus:bg-gray-700 focus:text-white"
                               >
@@ -248,7 +252,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  deleteChat(chat._id);
+                                  deleteChat(chat.id);
                                 }}
                                 className="text-red-400 focus:bg-red-600 focus:text-white"
                               >

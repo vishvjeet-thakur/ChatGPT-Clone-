@@ -8,8 +8,9 @@ export interface Message {
 }
 
 export interface Chat {
-  _id: string;
-  userId: string;
+  _id?: string; // MongoDB ID (optional for local storage)
+  id: string; // Local ID for local storage
+  userId?: string; // Optional for local storage
   title: string;
   messages: Message[];
   createdAt?: Date;

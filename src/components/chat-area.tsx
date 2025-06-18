@@ -323,6 +323,10 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
       })
     );
     uploaded_content+="</uploaded_content>\n";
+    if(final_uploaded_files.length==0)
+    {
+      uploaded_content="";
+    }
   
     const userMessageId = addMessage(uploaded_content+userMessage, "user", final_uploaded_files);
     const assistantMessageId = addMessage("", "assistant");
