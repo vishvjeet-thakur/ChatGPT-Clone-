@@ -8,6 +8,7 @@ A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web tec
 
 - **Real-time streaming responses** - Get instant, streaming responses from Groq's AI models
 - **Message history** - Persistent chat history with local storage and database sync
+- **Context window management** - Intelligent message trimming to stay within 100k token limit
 - **Markdown rendering** - Rich text formatting with code syntax highlighting
 - **Code block editing** - Edit and analyze code directly in the chat interface
 - **File upload support** - Upload images, PDFs, documents, and text files
@@ -83,7 +84,7 @@ src/
 - **MongoDB** - Database for chat storage
 - **Clerk** - Authentication service
 - **Uploadcare** - File upload and CDN
-- **Groq API** - Fast AI chat completions and code analysis
+- **Groq** - Fast AI chat completions and code analysis
 
 ### Development Tools
 

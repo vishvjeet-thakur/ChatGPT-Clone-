@@ -58,6 +58,15 @@ Handles chat completions with streaming responses from Groq.
 - Message history context
 - Error handling with fallback messages
 - Rate limiting protection
+- Context window management (100k token limit)
+
+**Context Window Management:**
+The chat API automatically optimizes the conversation context to stay within the 100k token limit:
+
+- Reserves 10k tokens for new messages
+- Uses 90k tokens for conversation history
+- Intelligently trims older messages when limit is exceeded
+- Preserves most recent and relevant messages
 
 **Example Usage:**
 

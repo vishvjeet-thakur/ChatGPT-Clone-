@@ -67,7 +67,8 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     setIsEditorOpen, 
     setEditingCode, 
     uploadedFiles, 
-    setUploadedFiles 
+    setUploadedFiles,
+    getOptimizedMessages
   } = useChat()
   
   // Local state for component functionality
@@ -75,8 +76,11 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
   const [isLoading, setIsLoading] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
 
-  // Get current chat for display
+  // Get current chat and messages
   const currentChat = getCurrentChat()
+  const messages = currentChat?.messages || []
+  const optimizedMessages = getOptimizedMessages()
+
 
   /**
    * Auto-scroll to bottom when new messages are added
@@ -176,7 +180,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          messages: [...(getCurrentChat()?.messages || []), {
+          messages: [...(optimizedMessages || []), {
             role: "user",
             content: uploaded_content + userMessage,
           }],
@@ -197,7 +201,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
-  
+
           const chunk = decoder.decode(value, { stream: true })
           assistantMessage += chunk
           setMessage(assistantMessageId, assistantMessage)
@@ -382,10 +386,10 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
         // Chat State: Show messages and input
         <>
           {/* Messages Scroll Area */}
-          <ScrollArea className="flex-1 px-4" ref={scrollAreaRef}>
+          <ScrollArea ref={scrollAreaRef} className="flex-1 px-4">
             <div className={`space-y-6 py-6 max-w-3xl ${!isEditorOpen ? "w-full mx-auto" : "w-1/2"}`}>
               {/* Render all messages */}
-              {currentChat.messages.map((message: Message) => (
+              {messages.map((message: Message) => (
                 <MessageComponent 
                   key={message.id} 
                   message={message} 

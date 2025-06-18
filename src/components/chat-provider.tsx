@@ -50,6 +50,11 @@ interface ChatContextType {
   setMessage: (messageId: string, content: string) => void
   updateChatTitle: (chatId: string, title: string) => void
   
+  // Context window management functions
+  getOptimizedMessages: () => Message[]
+  calculateTotalTokens: (messages: Message[]) => number
+  estimateTokenCount: (content: string) => number
+  
   // Audio recording reference
   waveformRef: React.RefObject<HTMLDivElement | null>
 }
@@ -89,6 +94,76 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   
   // Audio recording reference
   const waveformRef = useRef<HTMLDivElement | null>(null)
+
+  // Context window management
+  const MAX_TOKENS = 100000
+  const RESERVE_TOKENS = 10000 // Reserve 10k tokens for new messages
+  const MAX_CONTEXT_TOKENS = MAX_TOKENS - RESERVE_TOKENS // 90k tokens for context
+
+  /**
+   * Estimates token count for a message (rough approximation)
+   * @param content - The message content
+   * @returns Estimated token count
+   */
+  const estimateTokenCount = (content: string): number => {
+    // Rough approximation: 1 token ≈ 4 characters for English text
+    return Math.ceil(content.length / 4)
+  }
+
+  /**
+   * Calculates total token count for messages
+   * @param messages - Array of messages
+   * @returns Total estimated token count
+   */
+  const calculateTotalTokens = (messages: Message[]): number => {
+    return messages.reduce((total, message) => {
+      return total + estimateTokenCount(message.content)
+    }, 0)
+  }
+
+  /**
+   * Trims messages to fit within context window
+   * Keeps the most recent messages and removes older ones
+   * @param messages - Array of messages to trim
+   * @returns Trimmed array of messages
+   */
+  const trimMessagesToContextWindow = (messages: Message[]): Message[] => {
+    if (messages.length === 0) return messages
+
+    let totalTokens = calculateTotalTokens(messages)
+    
+    // If within limit, return as is
+    if (totalTokens <= MAX_CONTEXT_TOKENS) {
+      return messages
+    }
+
+    // Start from the end and keep messages until we exceed the limit
+    const trimmedMessages: Message[] = []
+    let currentTokens = 0
+
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const messageTokens = estimateTokenCount(messages[i].content)
+      
+      if (currentTokens + messageTokens <= MAX_CONTEXT_TOKENS) {
+        trimmedMessages.unshift(messages[i])
+        currentTokens += messageTokens
+      } else {
+        break
+      }
+    }
+    return trimmedMessages
+  }
+
+  /**
+   * Gets messages optimized for context window
+   * @returns Array of messages within token limit
+   */
+  const getOptimizedMessages = (): Message[] => {
+    const currentChat = getCurrentChat()
+    if (!currentChat) return []
+
+    return trimMessagesToContextWindow(currentChat.messages)
+  }
 
   /**
    * Load chats from database or local storage based on authentication status
@@ -378,6 +453,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     getCurrentChat,
     setMessage,
     updateChatTitle,
+    getOptimizedMessages,
+    calculateTotalTokens,
+    estimateTokenCount,
     waveformRef,
   }
 
