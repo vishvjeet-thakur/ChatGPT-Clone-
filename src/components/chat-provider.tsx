@@ -426,11 +426,31 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * @param title - The new title for the chat
    */
   const updateChatTitle = (chatId: string, title: string) => {
+    // Find the chat to get its database ID
+    const chatToUpdate = chats.find(chat => chat.id === chatId)
+    
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === chatId ? { ...chat, title } : chat
       )
     )
+
+    // Save to database for authenticated users
+    if (isSignedIn && userId && chatToUpdate?._id) {
+      fetch('/api/chats', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatId: chatToUpdate._id,
+          title: title,
+          messages: chatToUpdate.messages
+        })
+      }).catch(error => {
+        console.error('Error updating chat title:', error)
+      })
+    }
   }
 
   // Context value containing all state and functions
