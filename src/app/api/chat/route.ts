@@ -3,9 +3,9 @@ import { streamText } from "ai"
 
 export async function POST(request: Request) {
   try {
-    const { messages, assistantMessageId } = await request.json()
+    const { messages, memory } = await request.json()
     console.log("Messages:", messages)
-    console.log("Assistant Message ID:", assistantMessageId)
+    console.log("Memory:",memory)
 
     const result = streamText({
       model: groq("llama-3.3-70b-versatile"),
@@ -14,7 +14,8 @@ export async function POST(request: Request) {
         content: msg.content,
       })),
       system:
-        "You are ChatGPT, a helpful AI assistant created by OpenAI. Respond naturally and helpfully to user queries.",
+        `You are ChatGPT, a helpful AI assistant created by OpenAI. Respond naturally and helpfully to user queries.
+         Here is relevant memory/context for this user: ${memory} `,
       temperature: 0.7,
       maxTokens: 1000,
     })

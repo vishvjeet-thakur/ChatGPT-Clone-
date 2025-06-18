@@ -19,6 +19,7 @@ import {
   SignedOut,
   UserButton,
 } from '@clerk/nextjs'
+import { Memory } from "mem0ai"
 
 /**
  * Props interface for the ChatArea component
@@ -68,7 +69,8 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     setEditingCode, 
     uploadedFiles, 
     setUploadedFiles,
-    getOptimizedMessages
+    getOptimizedMessages,
+    userId
   } = useChat()
   
   // Local state for component functionality
@@ -163,10 +165,32 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     if (final_uploaded_files.length == 0) {
       uploaded_content = ""
     }
+
+
   
     // Add user message to chat
     const userMessageId = addMessage(uploaded_content + userMessage, "user", final_uploaded_files)
     const assistantMessageId = addMessage("", "assistant")
+
+    let memory=""
+    if(userId)
+      {
+      const response = await fetch('api/memory',{
+        method:'POST',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+         query:uploaded_content+userMessage,userId
+        }),
+      })
+   
+      const memory_response:Memory[] = await response.json();
+      memory_response.forEach((mem)=>{
+          memory+=mem.memory
+      })
+      console.log("memory fetched:",memory)
+      }
   
     try {
       // Send message to OpenAI API for streaming response
@@ -180,7 +204,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
             role: "user",
             content: uploaded_content + userMessage,
           }],
-          assistantMessageId,
+          memory,
         }),
       })
   
@@ -203,7 +227,27 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
           setMessage(assistantMessageId, assistantMessage)
         }
       }
-  
+
+      const interaction = [
+        {"role":"user" as const,'content':uploaded_content+userMessage},
+        {"role":"assistant" as const,'content':assistantMessage}
+      ]
+      
+      if(userId)
+        {
+        const memory_response = await fetch('api/memory',{
+          method:'POST',
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+           interaction,userId
+          }),
+        })
+        const memory_added = await memory_response.json();
+        console.log("memory_added",memory_added)
+        }
+
       // Handle empty responses
       if (!assistantMessage) {
         setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.")

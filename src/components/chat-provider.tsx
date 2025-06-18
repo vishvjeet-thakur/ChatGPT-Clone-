@@ -5,6 +5,10 @@ import { useAuth } from "@clerk/nextjs"
 import { v4 as uuidv4 } from "uuid"
 import { Chat, Message } from "@/types/chat"
 import { saveChatsToLocalStorage, loadChatsFromLocalStorage, clearLocalChats } from "@/lib/utils"
+import MemoryClient from 'mem0ai';
+import { headers } from "next/headers"
+
+
 
 /**
  * Interface for code editing functionality
@@ -20,6 +24,9 @@ interface CodeInterface {
  * Provides all the state and functions needed for chat functionality
  */
 interface ChatContextType {
+  //Auth details
+  userId:string|null|undefined
+
   // Chat state
   chats: Chat[]
   currentChatId: string | null
@@ -57,6 +64,8 @@ interface ChatContextType {
   
   // Audio recording reference
   waveformRef: React.RefObject<HTMLDivElement | null>
+
+
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -95,12 +104,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // Audio recording reference
   const waveformRef = useRef<HTMLDivElement | null>(null)
 
+
+  // const client = new MemoryClient({ apiKey: process.env.MEM0_API_KEY! });
+
+
+
   // Context window management
   const MAX_TOKENS = 100000
   const RESERVE_TOKENS = 10000 // Reserve 10k tokens for new messages
   const MAX_CONTEXT_TOKENS = MAX_TOKENS - RESERVE_TOKENS // 90k tokens for context
-
-  /**
+ 
+  /** 
    * Estimates token count for a message (rough approximation)
    * @param content - The message content
    * @returns Estimated token count
@@ -455,6 +469,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   // Context value containing all state and functions
   const value: ChatContextType = {
+    userId,
     chats,
     currentChatId,
     isEditorOpen,
