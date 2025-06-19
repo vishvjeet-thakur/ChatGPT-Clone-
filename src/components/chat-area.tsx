@@ -97,11 +97,11 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
    * Create a new chat if none exists
    * Ensures users always have a chat to work with
    */
-  useEffect(() => {
-    if (!currentChat) {
-      createNewChat()
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (!currentChat) {
+  //     createNewChat()
+  //   }
+  // }, [])
 
   /**
    * Handles form submission for new messages
@@ -122,10 +122,10 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     setUploadedFiles([])
   
     // Ensure we have a current chat
-    if (!currentChatId) {
-      createNewChat()
-      await new Promise((resolve) => setTimeout(resolve, 100))
-    }
+    // if (!currentChatId) {
+    //   createNewChat()
+    //   await new Promise((resolve) => setTimeout(resolve, 100))
+    // }
   
     // Process uploaded files for AI analysis
     let uploaded_content = "<uploaded_content>\n"
@@ -186,9 +186,12 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
       })
    
       const memory_response:Memory[] = await response.json();
-      memory_response.forEach((mem)=>{
+      if(Array.isArray(memory_response))
+      {
+       memory_response.forEach((mem)=>{
           memory+=mem.memory
       })
+    }
       console.log("memory fetched:",memory)
       }
   

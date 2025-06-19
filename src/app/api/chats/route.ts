@@ -55,12 +55,13 @@ export async function PUT(req: Request) {
     await connectDB();
 
     const chat = await Chat.findOneAndUpdate(
-      { _id: chatId, userId },
+      { id: chatId, userId },
       { title, messages },
       { new: true }
     );
 
     if (!chat) {
+      console.log("chat NOt found-",chatId)
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
     }
 

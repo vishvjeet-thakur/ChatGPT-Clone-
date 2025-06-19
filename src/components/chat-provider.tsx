@@ -7,6 +7,7 @@ import { Chat, Message } from "@/types/chat"
 import { saveChatsToLocalStorage, loadChatsFromLocalStorage, clearLocalChats } from "@/lib/utils"
 import MemoryClient from 'mem0ai';
 import { headers } from "next/headers"
+import { Error } from "mongoose"
 
 
 
@@ -84,7 +85,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined)
  * @param children - React components that will have access to chat context
  */
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const { userId, isSignedIn } = useAuth()
+  const { userId, isSignedIn ,isLoaded } = useAuth()
   
   // Core state
   const [chats, setChats] = useState<Chat[]>([])
@@ -185,6 +186,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * - For unsigned users: Load from browser local storage
    */
   useEffect(() => {
+    if(!isLoaded) return
     if (isSignedIn && userId) {
       // Load chats from database for authenticated users
       setIsLoading(true)
@@ -202,10 +204,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             setChats(chatsWithIds)
             if (chatsWithIds.length > 0) {
               setCurrentChatId(chatsWithIds[0].id)
-            } else {
-              // Only create a new chat if there are no existing chats
-              createNewChat()
-            }
+            } 
           }
         })
         .catch(error => {
@@ -221,12 +220,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setChats(localChats)
       if (localChats.length > 0) {
         setCurrentChatId(localChats[0].id)
-      } else {
-        createNewChat()
-      }
+      } 
       setIsLoading(false)
     }
-  }, [isSignedIn, userId])
+  }, [isSignedIn, userId , isLoaded])
 
   /**
    * Persist chats to database or local storage based on authentication status
@@ -234,9 +231,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * - For unsigned users: Save to browser local storage
    */
   useEffect(() => {
+    if(!isLoaded) return
     if (isSignedIn && userId && chats.length > 0) {
       // Save to database for authenticated users
       const currentChat = chats.find(chat => chat.id === currentChatId)
+      console.log("currentChat-", currentChat)
       if (currentChat) {
         fetch('/api/chats', {
           method: 'PUT',
@@ -244,19 +243,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            chatId: currentChat._id,
+            chatId: currentChat.id,
             title: currentChat.title,
             messages: currentChat.messages
           })
         }).catch(error => {
           console.error('Error saving chat:', error)
+          console.log("error saving chat :",Error)
         })
       }
     } else if (!isSignedIn) {
       // Save to local storage when not signed in
       saveChatsToLocalStorage(chats)
     }
-  }, [chats, currentChatId, isSignedIn, userId])
+  }, [chats, currentChatId, isSignedIn, userId, isLoaded])
 
   /**
    * Clear local storage when user signs in to avoid conflicts
@@ -278,11 +278,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    */
   const createNewChat = () => {
     // Don't create a new chat if we already have an empty one
-    const emptyChat = chats.find(chat => chat.messages.length === 0)
-    if (emptyChat) {
-      setCurrentChatId(emptyChat.id)
-      return
-    }
+    // const emptyChat = chats.find(chat => chat.messages.length === 0)
+    // if (emptyChat) {
+    //   setCurrentChatId(emptyChat.id)
+    //   return
+    // }
 
     const newChat: Omit<Chat, '_id' | 'userId'> = {
       id: uuidv4(),
@@ -309,7 +309,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       .then(res => res.json())
       .then(savedChat => {
         setChats(prev => prev.map(chat => 
-          chat.id === newChat.id ? { ...savedChat, id: newChat.id } : chat
+          chat.id === newChat.id ? { ...chat, _id: savedChat._id } : chat
         ));
       })
       .catch(error => {
@@ -457,7 +457,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          chatId: chatToUpdate._id,
+          chatId: chatToUpdate.id,
           title: title,
           messages: chatToUpdate.messages
         })
