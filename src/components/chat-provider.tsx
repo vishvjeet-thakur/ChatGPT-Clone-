@@ -50,7 +50,7 @@ interface ChatContextType {
   setIsEditorOpen: (val: boolean) => void
   
   // Chat management functions
-  createNewChat: () => void
+  createNewChat: () => Promise<string>
   selectChat: (id: string) => void
   deleteChat: (id: string) => void
   addMessage: (content: string, role: "user" | "assistant", uploads?: { url: string, mimeType: string, uuid: string }[], messageType?: "code" | "chat") => string
@@ -105,6 +105,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   // Audio recording reference
   const waveformRef = useRef<HTMLDivElement | null>(null)
 
+  const [pendingMessage, setPendingMessage] = useState<Message[]| []>([]);
+   
 
   // const client = new MemoryClient({ apiKey: process.env.MEM0_API_KEY! });
 
@@ -132,7 +134,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    */
   const calculateTotalTokens = (messages: Message[]): number => {
     return messages.reduce((total, message) => {
-      return total + estimateTokenCount(message.content)
+      if (message && typeof message.content === 'string') {
+        return total + estimateTokenCount(message.content);
+      }
+      return total;
     }, 0)
   }
 
@@ -268,6 +273,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [isSignedIn])
 
+  useEffect(()=>{
+    if (pendingMessage.length && currentChatId && chats.length) {
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.id === currentChatId
+            ? { ...chat, messages: [...chat.messages, ...pendingMessage] }
+            : chat
+        )
+      );
+      setPendingMessage([]); 
+    }
+       
+  },[pendingMessage,currentChatId]);
+
   /**
    * Creates a new chat session
    * - Generates a unique ID for the chat
@@ -276,7 +295,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * - For authenticated users: Saves to database
    * - Prevents creating multiple empty chats
    */
-  const createNewChat = () => {
+  const createNewChat = async() => {
     // Don't create a new chat if we already have an empty one
     // const emptyChat = chats.find(chat => chat.messages.length === 0)
     // if (emptyChat) {
@@ -292,10 +311,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     setChats((prev) => [newChat as Chat, ...prev])
     setCurrentChatId(newChat.id)
+    console.log("current chat_id ", currentChatId)
 
     // Save to database for authenticated users
     if (isSignedIn && userId) {
-      fetch('/api/chats', {
+      try{
+     const response= await fetch('/api/chats', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -306,16 +327,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           messages: newChat.messages
         })
       })
-      .then(res => res.json())
-      .then(savedChat => {
+      const savedChat = await response.json();
         setChats(prev => prev.map(chat => 
           chat.id === newChat.id ? { ...chat, _id: savedChat._id } : chat
         ));
-      })
-      .catch(error => {
+      
+    }catch(error) {
         console.error('Error creating chat:', error)
-      })
+      }
     }
+
+    return newChat.id
   }
 
   /**
@@ -391,6 +413,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       timestamp: new Date(),
     }
 
+    // if(!chats.length)
+    // {
+    //   setPendingMessage(prev => [...prev, newMessage]);
+    //   return messageId;
+    // }
+    console.log(role)
+    console.log(content)
+    console.log(currentChatId)
+   
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === currentChatId
@@ -418,6 +449,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * @param content - The new content for the message
    */
   const setMessage = (messageId: string, content: string) => {
+    console.log("assistant adding-",content)
+    console.log("currentChatId:",currentChatId)
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === currentChatId

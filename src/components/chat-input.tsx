@@ -214,7 +214,7 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
           if ((!input.trim() && uploadedFiles.length == 0) || isLoading || isTranscribing || isRecording) return
           onSubmit(input.trim())
           setInput("")
-          setUploadedFiles([])
+          
         }}
         className="w-full rounded-3xl p-2 flex flex-col"
         style={{ backgroundColor: "rgb(49,48,49)", borderColor: "rgb(96,96,64)", maxHeight: "300px" }}

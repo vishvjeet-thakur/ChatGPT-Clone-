@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from "@/components/chat-provider"
-import { PanelLeft } from "lucide-react"
+import { ChartSpline, PanelLeft } from "lucide-react"
 import { Message as MessageComponent } from "@/components/message"
 import { Message } from "@/types/chat"
 import { CodeEditor } from "./code-editor"
@@ -81,6 +81,17 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
   const currentChat = getCurrentChat()
   const messages = currentChat?.messages || []
   const optimizedMessages = getOptimizedMessages()
+  const [pendingMessage,setPendingMessage]= useState<string>("")
+  
+  useEffect(()=>{
+    console.log("uploaded files",uploadedFiles)
+    console.log("length",uploadedFiles.length)
+    if((pendingMessage!="" || uploadedFiles.length>0) && currentChatId!=null)
+    { console.log("currentchat id changed")
+      handleSubmit(pendingMessage);
+      setPendingMessage("");
+    }
+  },[currentChatId,currentChat])
 
 
   /**
@@ -116,17 +127,17 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
    */
   const handleSubmit = async (userMessage: string) => {
     if (!userMessage.trim() && uploadedFiles.length === 0) return
-    
-    const final_uploaded_files = uploadedFiles
     setIsLoading(true)
+    if (!currentChatId || !currentChat) {
+      console.log("inside submit",uploadedFiles)
+      await createNewChat()
+      setPendingMessage(userMessage)
+      return;
+    }
+  
+    const final_uploaded_files = uploadedFiles
     setUploadedFiles([])
-  
-    // Ensure we have a current chat
-    // if (!currentChatId) {
-    //   createNewChat()
-    //   await new Promise((resolve) => setTimeout(resolve, 100))
-    // }
-  
+   
     // Process uploaded files for AI analysis
     let uploaded_content = "<uploaded_content>\n"
     let image_num = 0
@@ -231,33 +242,37 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
         }
       }
 
+       // Handle empty responses
+       if (!assistantMessage) {
+        setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.")
+      }
+
+      setIsLoading(false)
+
       const interaction = [
         {"role":"user" as const,'content':uploaded_content+userMessage},
         {"role":"assistant" as const,'content':assistantMessage}
       ]
       
-      if(userId)
-        {
-        const memory_response = await fetch('api/memory',{
-          method:'POST',
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-           interaction,userId
-          }),
-        })
-        const memory_added = await memory_response.json();
-        }
-
-      // Handle empty responses
-      if (!assistantMessage) {
-        setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request.")
-      }
+      // if(userId && assistantMessage && userMessage)
+      //   {
+      //   const memory_response = await fetch('api/memory',{
+      //     method:'POST',
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify({
+      //      interaction,userId
+      //     }),
+      //   })
+      //   const memory_added = await memory_response.json();
+      //   }
+      
+     
   
       // Add to memory and generate title in parallel (if needed)
       const parallelTasks: Promise<any>[] = [];
-      if (userId) {
+      if(userId && assistantMessage && userMessage) {
         const memoryPromise = fetch('api/memory', {
           method: 'POST',
           headers: {
@@ -306,9 +321,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     } catch (error) {
       console.error("Chat error:", error)
       setMessage(assistantMessageId, "I apologize, but I encountered an error processing your request. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+    } 
   }
 
   /**
