@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit, Check } from "lucide-react"
+import { Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit, Check, Send, X } from "lucide-react"
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -14,6 +14,7 @@ import React from "react"
 import { CodeEditor } from "@/components/code-editor"
 import { useChat  } from "@/components/chat-provider"
 import { FileViewerDialog } from "@/components/file-viewer-dialog"
+import TextareaAutosize from 'react-textarea-autosize';
 
 interface MessageProps {
   message: {
@@ -27,12 +28,22 @@ interface MessageProps {
   isLoading?: boolean,
   onToggleSideBar?: () => void;
   sidebarOpen?: boolean
+  handleSubmit?: (inputText: string) => void;
 }
 
-export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: MessageProps) {
+export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, handleSubmit }: MessageProps) {
   const [copied, setCopied] = useState(false)
   const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string } | null>(null)
-  const { setMessage ,isEditorOpen ,setIsEditorOpen , editingCode, setEditingCode } = useChat()
+  const { setMessage ,isEditorOpen ,setIsEditorOpen , editingCode, setEditingCode, addMessage, getCurrentChat, chats, currentChatId, setChats } = useChat()
+  const [isEditing, setIsEditing] = useState(false)
+  const [editValue, setEditValue] = useState(message.content)
+
+  // Find the assistant message that follows this user message
+  const currentChat = getCurrentChat && getCurrentChat()
+  const assistantMsg = currentChat?.messages?.find((m, idx, arr) => {
+    const i = arr.findIndex(mm => mm.id === message.id)
+    return m.role === 'assistant' && i !== -1 && arr[i + 1]?.id === m.id
+  })
 
   const copyToClipboard = async () => {
     await navigator.clipboard.writeText(message.content)
@@ -46,6 +57,37 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
       const codeBlockRegex = new RegExp(`\`\`\`${editingCode.language}\\n[\\s\\S]*?\`\`\``)
       const newContent = message.content.replace(codeBlockRegex, `\`\`\`${editingCode.language}\n${newCode}\`\`\``)
       setMessage(message.id, newContent)
+    }
+  }
+
+  const handleEditClick = () => {
+    setIsEditing(true)
+    setEditValue(message.content)
+  }
+
+  const handleEditCancel = () => {
+    setIsEditing(false)
+    setEditValue(message.content)
+  }
+
+  const handleEditSend = async () => {
+
+    console.log("message editing:",message.content)
+    setIsEditing(false)
+    // Remove all messages from this message downwards
+    const chat = getCurrentChat && getCurrentChat()
+    if (chat && setChats && currentChatId) {
+      const idx = chat.messages.findIndex(m => m.id === message.id)
+      if (idx !== -1) {
+        setChats((prevChats: any) => prevChats.map((c: any) =>
+          c.id === currentChatId
+            ? { ...c, messages: c.messages.slice(0, idx) }
+            : c
+        ))  
+      }
+    }
+    if (handleSubmit) {
+      handleSubmit(editValue)
     }
   }
 
@@ -200,7 +242,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
   const message_to_be_shown = message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()
 
   return (
-    <div className={`flex gap-2 md:gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
+    <div className={`flex gap-2 md:gap-4  ${message.role === "user" ? "justify-end" : ""}`}>
       <div className={`flex-1 ${message.role === "user" ? "order-first" : ""} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
         {
           message.uploads.length>0 &&
@@ -229,7 +271,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
           </div>
         }
         <div
-          className={`${
+          className={`relative group/message ${
             message.role === "user" 
               ? message.messageType === "code"
                 ? "bg-[#1E1E1E] rounded-lg p-3 md:p-4" // Special styling for code messages
@@ -241,6 +283,8 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
               ? "rgb(32,32,33)" 
               : message.messageType === "code"
                 ? "rgb(30,30,30)" // Darker background for code messages
+                :isEditing
+                ?"rgb(67,66,67)"
                 :message_to_be_shown
                 ? "rgb(49,48,49)"
                 :""
@@ -253,7 +297,8 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
               </div>
             </div>
           )}
-          {isLoading ? (
+          {isLoading &&
+          <div>
             <div className="flex items-center gap-2">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
@@ -265,6 +310,39 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
                   className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
                   style={{ animationDelay: "0.2s" }}
                 ></div>
+                </div>
+                </div>
+                </div>
+                }
+          
+          {isEditing ? (
+            <div className="flex flex-col gap-2 bg-[rgb(67,66,67)]">
+              <TextareaAutosize
+                className="w-full resize-none bg-transparent text-white placeholder:text-gray-400 border-none focus:outline-none focus:ring-0 focus:border-none p-0 m-0"
+                value={editValue}
+                onChange={e => setEditValue(e.target.value)}
+                autoFocus
+                maxRows={7}
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEditCancel}
+                  className="flex items-center gap-1 rounded-full  text-white bg-[rgb(32,33,32)] hover:![rgb(32,32,32)]"
+                >
+                  <X size={12} />
+                  Cancel
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEditSend}
+                  className="flex items-center gap-1 rounded-full !text-black bg-white hover:!bg-gray-200  "
+                >
+                  <Send size={12}  />
+                  Send
+                </Button>
               </div>
             </div>
           ) : (
@@ -280,6 +358,27 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen }: 
               >
                 {message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()}
               </ReactMarkdown>
+            </div>
+          )}
+          {/* User message action buttons (Edit, Copy) */}
+          {message.role === "user" && !isLoading && (
+            <div className="absolute right-1 -bottom-7 flex gap-2 pointer-events-auto z-10">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={copyToClipboard}
+                className="h-7 w-7 md:h-8 md:w-8 p-0 text-white hover:text-white hover:bg-gray-700"
+              >
+                <Copy size={14} className="text-white" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleEditClick}
+                className="h-7 w-7 md:h-8 md:w-8 p-0 text-white hover:text-white hover:bg-gray-700"
+              >
+                <Edit size={14} className="text-white" />
+              </Button>
             </div>
           )}
         </div>

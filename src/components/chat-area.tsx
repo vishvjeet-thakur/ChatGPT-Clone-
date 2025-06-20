@@ -126,6 +126,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
    * @param userMessage - The user's input text
    */
   const handleSubmit = async (userMessage: string) => {
+    console.log(userMessage)
     if (!userMessage.trim() && uploadedFiles.length === 0) return
     setIsLoading(true)
     if (!currentChatId || !currentChat) {
@@ -182,6 +183,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     // Add user message to chat
     const userMessageId = addMessage(uploaded_content + userMessage, "user", final_uploaded_files)
     const assistantMessageId = addMessage("", "assistant")
+    console.log("assistnt id:",assistantMessageId)
 
     let memory=""
     if(userId)
@@ -463,6 +465,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
                   message={message} 
                   onToggleSideBar={onToggleSidebar} 
                   sidebarOpen={sidebarOpen} 
+                  handleSubmit={handleSubmit}
                 />
               ))}
               

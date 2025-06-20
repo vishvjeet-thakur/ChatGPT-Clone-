@@ -66,7 +66,7 @@ interface ChatContextType {
   // Audio recording reference
   waveformRef: React.RefObject<HTMLDivElement | null>
 
-
+  setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined)
@@ -525,6 +525,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     calculateTotalTokens,
     estimateTokenCount,
     waveformRef,
+    setChats,
   }
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>
