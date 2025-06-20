@@ -45,7 +45,6 @@ A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web tec
 - The edit feature is fully ARIA compliant, with accessible labels for all controls.
 
 ### Regenerate Assistant Response
-
 - Users can regenerate the assistant's response to any message by clicking the **Regenerate** (circular arrow) button below the assistant's message.
 - The assistant will generate a new, slightly varied response using a higher temperature for more creativity.
 - The regeneration button is ARIA compliant and accessible to screen readers.
@@ -300,6 +299,15 @@ The application can be deployed to any platform that supports Next.js:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## �� Acknowledgments
+
+- Groq for fast AI inference
+- Vercel for Next.js framework
+- Clerk for authentication
+- Uploadcare for file handling
+- Monaco Editor for code editing
+- Tailwind CSS for styling
 
 ## 📞 Support
 

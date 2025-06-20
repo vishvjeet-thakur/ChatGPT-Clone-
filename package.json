@@ -29,6 +29,7 @@
     "groq-sdk": "^0.25.0",
     "lucide-react": "^0.514.0",
     "mem0ai": "^2.1.31",
+    "monaco-editor": "^0.52.2",
     "mongoose": "^8.16.0",
     "next": "15.3.3",
     "next-themes": "^0.4.6",

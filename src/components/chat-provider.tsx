@@ -388,7 +388,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * @param messageType - Optional type of message ("code" or "chat")
    * @returns The unique ID of the created message
    */
-  const addMessage = (content: string, role: "user" | "assistant", uploads: { url: string, mimeType: string, uuid: string, name:string }[] = []) => {
+  const addMessage = (content: string, role: "user" | "assistant", uploads: { url: string, mimeType: string, uuid: string, name:string }[] = [], messageType: "code" | "chat" = "chat") => {
     const messageId = uuidv4()
     const newMessage: Message = {
       id: messageId,
@@ -396,6 +396,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       content,
       uploads,
       timestamp: new Date(),
+      messageType
     }
 
 

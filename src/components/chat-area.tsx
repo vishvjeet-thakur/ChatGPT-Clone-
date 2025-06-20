@@ -329,7 +329,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     if (!editingCode) return
 
     // Add the code as a user message with special formatting
-    addMessage(`\${editingCode.language}\n${code}\n\`, "user", [], "code")
+    addMessage(`\`\`\`${editingCode.language}\n${code}\n\`\`\``, "user", [], "code")
     const assistantMessageId = addMessage("", "assistant")
     setIsLoading(true)
     
