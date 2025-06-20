@@ -37,6 +37,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
   const { setMessage ,isEditorOpen ,setIsEditorOpen , editingCode, setEditingCode, addMessage, getCurrentChat, chats, currentChatId, setChats } = useChat()
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(message.content)
+  const message_to_be_shown = message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()
 
   // Find the assistant message that follows this user message
   const currentChat = getCurrentChat && getCurrentChat()
@@ -46,7 +47,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
   })
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(message.content)
+    await navigator.clipboard.writeText(message_to_be_shown)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -239,7 +240,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
     ),
   }
 
-  const message_to_be_shown = message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()
+  
 
   return (
     <div className={`flex gap-2 md:gap-4  ${message.role === "user" ? "justify-end" : ""}`}>
@@ -371,14 +372,16 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
               >
                 <Copy size={14} className="text-white" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleEditClick}
-                className="h-7 w-7 md:h-8 md:w-8 p-0 text-white hover:text-white hover:bg-gray-700"
-              >
-                <Edit size={14} className="text-white" />
-              </Button>
+              {message.uploads.length === 0 && message_to_be_shown && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEditClick}
+                  className="h-7 w-7 md:h-8 md:w-8 p-0 text-white hover:text-white hover:bg-gray-700"
+                >
+                  <Edit size={14} className="text-white" />
+                </Button>
+              )}
             </div>
           )}
         </div>
