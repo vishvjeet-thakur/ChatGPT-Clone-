@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import connectDB from '@/lib/mongodb';
+import {connectDB} from '@/lib/mongodb';
 import { Chat } from '@/models/chat';
 
 export async function GET() {

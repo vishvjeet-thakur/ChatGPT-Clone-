@@ -4,10 +4,10 @@ import { streamText } from "ai"
 export async function POST(request: Request) {
   try {
     const { messages } = await request.json()
-
+    type Message = { role: string; content: string }
     const result = streamText({
       model: groq("llama-3.3-70b-versatile"),
-      messages: messages.map((msg: any) => ({
+      messages: messages.map((msg: Message) => ({
         role: msg.role,
         content: msg.content,
       })),

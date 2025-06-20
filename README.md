@@ -35,6 +35,29 @@ A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web tec
 - **Clerk** - Modern authentication solution
 - **Groq** - Fast AI inference platform
 
+## Features
+
+### Edit User Messages
+
+- Users can edit their previously sent messages by clicking the **Edit** button below their message.
+- After editing, the assistant's response is regenerated based on the updated message.
+- A **Cancel** button allows aborting the edit.
+- The edit feature is fully ARIA compliant, with accessible labels for all controls.
+
+### Regenerate Assistant Response
+
+- Users can regenerate the assistant's response to any message by clicking the **Regenerate** (circular arrow) button below the assistant's message.
+- The assistant will generate a new, slightly varied response using a higher temperature for more creativity.
+- The regeneration button is ARIA compliant and accessible to screen readers.
+
+### Accessibility (ARIA Compliance)
+
+- The application is designed to be accessible:
+  - All interactive elements (buttons, inputs, etc.) have appropriate `aria-label` attributes.
+  - Live assistant responses use `aria-live="polite"` so screen readers announce updates.
+  - Navigation and layout use ARIA landmark roles (`role="main"`, `role="navigation"`, etc.).
+  - Icon-only buttons are labeled for assistive technology.
+
 ## 🏗️ Architecture
 
 ### Frontend Structure
@@ -277,15 +300,6 @@ The application can be deployed to any platform that supports Next.js:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## �� Acknowledgments
-
-- Groq for fast AI inference
-- Vercel for Next.js framework
-- Clerk for authentication
-- Uploadcare for file handling
-- Monaco Editor for code editing
-- Tailwind CSS for styling
 
 ## 📞 Support
 

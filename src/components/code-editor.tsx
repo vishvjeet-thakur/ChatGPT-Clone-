@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
-import Editor, { Monaco } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 import { X, Save, Copy, Check } from "lucide-react";
-import { useChat } from "./chat-provider";
+import type * as monacoEditor from 'monaco-editor';
+
 
 interface CodeEditorProps {
   isOpen: boolean;
@@ -68,8 +69,7 @@ export function CodeEditor({
   onSave,
 }: CodeEditorProps) {
   const [copied, setCopied] = React.useState(false);
-  const editorRef = useRef<any>(null);
-  const { addMessage , setMessage } = useChat();
+  const editorRef = useRef<monacoEditor.editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     if (isOpen && onSidebarToggle) {
@@ -77,7 +77,7 @@ export function CodeEditor({
     }
   }, [isOpen, onSidebarToggle]);
 
-  const handleEditorDidMount = (editor: any, monaco: Monaco) => {
+  const handleEditorDidMount = (editor: monacoEditor.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor;
     editor.focus();
   };

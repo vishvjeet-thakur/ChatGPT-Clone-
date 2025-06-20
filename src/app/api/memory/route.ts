@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import MemoryClient from 'mem0ai';
 
-async function retryAsync(fn: () => Promise<any>, maxRetries = 3, delay = 300) {
+async function retryAsync<T>(fn: () => Promise<T>, maxRetries = 3, delay = 300): Promise<T> {
   let lastError;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -25,15 +25,17 @@ export async function POST(req: NextRequest) {
     try {
       const result = await retryAsync(() => client.search(body.query, { user_id: body.userId }), 3, 300);
       return NextResponse.json(result);
-    } catch (error: any) {
-      return NextResponse.json({ error: error.message || 'Memory service unavailable after retries.' }, { status: 500 });
+    } catch (error: unknown) {
+      const err = error as Error;
+      return NextResponse.json({ error: err.message || 'Memory service unavailable after retries.' }, { status: 500 });
     }
   } else if (body.interaction && body.userId) {
     try {
       const result = await retryAsync(() => client.add(body.interaction, { user_id: body.userId }), 3, 300);
       return NextResponse.json(result);
-    } catch (error: any) {
-      return NextResponse.json({ error: error.message || 'Memory service unavailable after retries.' }, { status: 500 });
+    } catch (error: unknown) {
+      const err = error as Error;
+      return NextResponse.json({ error: err.message || 'Memory service unavailable after retries.' }, { status: 500 });
     }
   } else {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });

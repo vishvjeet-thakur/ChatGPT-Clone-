@@ -1,5 +1,5 @@
 import React, { useState, useRef , useEffect } from 'react';
-import { Mic, Square, Pause , Check, X, Play } from 'lucide-react';
+import { Mic, Pause , Check, X, Play } from 'lucide-react';
 import { Button } from './ui/button';
 import { useChat } from './chat-provider';
 import WaveSurfer from 'wavesurfer.js';
@@ -47,7 +47,7 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
         recordRef.current?.stopRecording();
         wavesurferRef.current?.destroy();
     }
-  }, [isRecording]);
+  }, [isRecording, waveformRef]);
 
 
 

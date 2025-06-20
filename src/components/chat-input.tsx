@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef} from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Send, Loader2, Plus, X, ArrowUp } from "lucide-react"
+import { Loader2, Plus, X, ArrowUp } from "lucide-react"
 import { useChat } from "@/components/chat-provider"
 import { VoiceRecorder } from "@/components/voice-recorder"
 import { uploadFile } from "@uploadcare/upload-client"
@@ -12,6 +12,7 @@ import {
   UploadcareSimpleAuthSchema,
 } from '@uploadcare/rest-client'
 import { FileViewerDialog } from "@/components/file-viewer-dialog"
+import { FilePreviewCard } from "./ui/file-preview-card"
 
 /**
  * Props interface for the ChatInput component
@@ -57,8 +58,8 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
   // Local state for component functionality
   const [input, setInput] = useState("")
   const [isTranscribing, setIsTranscribing] = useState(false)
-  const [uploadingFiles, setUploadingFiles] = useState<{ id: string, mimeType: string }[]>([])
-  const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string } | null>(null)
+  const [uploadingFiles, setUploadingFiles] = useState<{ id: string, mimeType: string, name: string }[]>([])
+  const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string, name: string } | null>(null)
 
   /**
    * Auto-resize textarea based on content
@@ -120,11 +121,13 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
     // Add files to uploading state immediately for visual feedback
     const newUploadingFiles = Array.from(files).map(file => ({
       id: Math.random().toString(36).substring(7),
-      mimeType: file.type
+      mimeType: file.type,
+      name: file.name
     }))
+
     setUploadingFiles(prev => [...prev, ...newUploadingFiles])
 
-    const uploaded: { url: string, mimeType: string, uuid: string }[] = []
+    const uploaded: { url: string, mimeType: string, uuid: string , name: string }[] = []
 
     // Process each file individually
     for (const file of Array.from(files)) {
@@ -139,7 +142,8 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
         uploaded.push({
           url: result.cdnUrl || "",
           mimeType: file.type,
-          uuid: result.uuid || ""
+          uuid: result.uuid || "",
+          name: file.name
         })
       } catch (err) {
         console.error("Upload failed", err)
@@ -175,8 +179,6 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
       const audioFile = new File([audioBlob], 'recording.webm', { type: 'audio/webm' })
       formData.append('audio', audioFile)
 
-      console.log('Audio file type:', audioFile.type)
-      console.log('Audio file size:', audioFile.size)
 
       // Send audio to transcription API
       const response = await fetch('/api/transcribe', {
@@ -265,12 +267,19 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
                   />
                 ) : (
                   // Document preview
-                  <div
-                    className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2 cursor-pointer hover:bg-gray-600 transition-colors"
-                    onClick={() => setSelectedFile(file)}
-                  >
-                    📄 File<br />{file.mimeType.split("/")[1] || "File"}
-                  </div>
+                  <FilePreviewCard
+                  key={file.uuid}
+                  fileName={file.name}
+                  fileType={file.mimeType.split('/')[1]?.toUpperCase() || 'FILE'}
+                  onRemove={() => handleDeleteFile(file.uuid)}
+                  onClick={() => setSelectedFile(file)}
+                  />
+                  // <div
+                  //   className="w-24 h-24 bg-gray-700 text-white rounded-lg flex items-center justify-center text-xs text-center p-2 cursor-pointer hover:bg-gray-600 transition-colors"
+                  //   onClick={() => setSelectedFile(file)}
+                  // >
+                  //   📄 File<br />{file.mimeType.split("/")[1] || "File"}
+                  // </div>
                 )}
               </div>
             ))}

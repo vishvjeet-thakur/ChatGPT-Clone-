@@ -12,7 +12,6 @@ import {
   BookOpen,
   Play,
   Grid3X3,
-  MessageSquare,
   MoreHorizontal,
   Trash2,
   Edit3,
@@ -38,9 +37,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const sidebarRef = useRef<HTMLDivElement>(null)
 
-  // Debug log to see current state
-  console.log('Sidebar - Current chats:', chats.map(c => ({ id: c.id, title: c.title })))
-  console.log('Sidebar - Current chat ID:', currentChatId)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

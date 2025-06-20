@@ -17,7 +17,8 @@ const messageSchema = new mongoose.Schema({
   uploads: [{
     url: String,
     mimeType: String,
-    uuid: String
+    uuid: String,
+    name:String
   }],
   messageType: {
     type: String,

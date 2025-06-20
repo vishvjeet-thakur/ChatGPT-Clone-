@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { Groq } from 'groq-sdk';
 import PDFParser from 'pdf2json';
@@ -13,7 +12,6 @@ const groq = new Groq({
 export async function POST(req: Request) {
   try {
     const { url, mimeType }: { url: string; mimeType: string } = await req.json();
-    console.log("url", url);
 
     if (mimeType.startsWith('image/')) {
       const chatCompletion = await groq.chat.completions.create({
@@ -56,16 +54,17 @@ export async function POST(req: Request) {
             reject(err.parserError);
           });
       
-          pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+          pdfParser.on("pdfParser_dataReady", (pdfData: unknown) => {
             try {
-              const pages = pdfData?.Pages;
+              const pages = (pdfData as { Pages?: unknown[] })?.Pages;
               if (!pages || !Array.isArray(pages)) {
                 return reject(new Error('Invalid PDF structure: no pages found'));
               }
       
               let result = '';
               for (const page of pages) {
-                for (const textItem of page.Texts) {
+                const typedPage = page as { Texts: { R: { T: string }[] }[] };
+                for (const textItem of typedPage.Texts) {
                   for (const r of textItem.R) {
                     result += decodeURIComponent(r.T) + ' ';
                   }

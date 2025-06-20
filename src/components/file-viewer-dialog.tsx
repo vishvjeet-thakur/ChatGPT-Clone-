@@ -6,10 +6,32 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useEffect, useState } from "react"
 
+
+type PDFDocumentProxy = {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<PDFPageProxy>;
+};
+type PDFPageProxy = {
+  getViewport: (params: { scale: number }) => { width: number; height: number };
+  render: (params: { canvasContext: CanvasRenderingContext2D; viewport: { width: number; height: number } }) => { promise: Promise<void> };
+};
+type PDFDocumentLoadingTask = {
+  promise: Promise<PDFDocumentProxy>;
+};
+type PDFJS = {
+  GlobalWorkerOptions: { workerSrc: string };
+  getDocument: (url: string) => PDFDocumentLoadingTask;
+};
+
+// type PDFJS = {
+//   GlobalWorkerOptions: { workerSrc: string };
+//   getDocument: (url: string) => unknown;
+// };
+
 // Load PDF.js from CDN
 declare global {
   interface Window {
-    pdfjsLib: any;
+    pdfjsLib: PDFJS;
   }
 }
 

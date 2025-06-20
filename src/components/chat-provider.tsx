@@ -5,8 +5,6 @@ import { useAuth } from "@clerk/nextjs"
 import { v4 as uuidv4 } from "uuid"
 import { Chat, Message } from "@/types/chat"
 import { saveChatsToLocalStorage, loadChatsFromLocalStorage, clearLocalChats } from "@/lib/utils"
-import MemoryClient from 'mem0ai';
-import { headers } from "next/headers"
 import { Error } from "mongoose"
 
 
@@ -41,8 +39,8 @@ interface ChatContextType {
   isRecording: boolean
   
   // File upload state
-  uploadedFiles: { url: string, mimeType: string, uuid: string }[]
-  setUploadedFiles: (file: { url: string, mimeType: string, uuid: string }[]) => void
+  uploadedFiles: { url: string, mimeType: string, uuid: string , name:string }[]
+  setUploadedFiles: (file: { url: string, mimeType: string, uuid: string  , name:string }[]) => void
   
   // State setters
   setIsRecording: (val: boolean) => void
@@ -53,7 +51,7 @@ interface ChatContextType {
   createNewChat: () => Promise<string>
   selectChat: (id: string) => void
   deleteChat: (id: string) => void
-  addMessage: (content: string, role: "user" | "assistant", uploads?: { url: string, mimeType: string, uuid: string }[], messageType?: "code" | "chat") => string
+  addMessage: (content: string, role: "user" | "assistant", uploads?: { url: string, mimeType: string, uuid: string, name:string }[], messageType?: "code" | "chat") => string
   getCurrentChat: () => Chat | null
   setMessage: (messageId: string, content: string) => void
   updateChatTitle: (chatId: string, title: string) => void
@@ -100,12 +98,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isRecording, setIsRecording] = useState<boolean>(false)
   
   // File upload state
-  const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string }[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<{ url: string, mimeType: string, uuid: string , name:string }[]>([])
   
   // Audio recording reference
   const waveformRef = useRef<HTMLDivElement | null>(null)
 
-  const [pendingMessage, setPendingMessage] = useState<Message[]| []>([]);
+  // const [pendingMessage, setPendingMessage] = useState<Message[]| []>([]);
    
 
   // const client = new MemoryClient({ apiKey: process.env.MEM0_API_KEY! });
@@ -150,7 +148,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const trimMessagesToContextWindow = (messages: Message[]): Message[] => {
     if (messages.length === 0) return messages
 
-    let totalTokens = calculateTotalTokens(messages)
+    const totalTokens = calculateTotalTokens(messages)
     
     // If within limit, return as is
     if (totalTokens <= MAX_CONTEXT_TOKENS) {
@@ -199,13 +197,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
-            console.log('Loaded chats from database:', data)
             // Ensure all chats have a local id field for consistency
             const chatsWithIds = data.map(chat => ({
               ...chat,
               id: chat.id || chat._id // Use local id if available, otherwise use _id as fallback
             }))
-            console.log('Chats with IDs:', chatsWithIds)
             setChats(chatsWithIds)
             if (chatsWithIds.length > 0) {
               setCurrentChatId(chatsWithIds[0].id)
@@ -221,7 +217,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     } else {
       // Load from local storage when not signed in
       const localChats = loadChatsFromLocalStorage()
-      console.log('Loaded chats from local storage:', localChats)
       setChats(localChats)
       if (localChats.length > 0) {
         setCurrentChatId(localChats[0].id)
@@ -240,7 +235,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (isSignedIn && userId && chats.length > 0) {
       // Save to database for authenticated users
       const currentChat = chats.find(chat => chat.id === currentChatId)
-      console.log("currentChat-", currentChat)
       if (currentChat) {
         fetch('/api/chats', {
           method: 'PUT',
@@ -254,7 +248,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           })
         }).catch(error => {
           console.error('Error saving chat:', error)
-          console.log("error saving chat :",Error)
         })
       }
     } else if (!isSignedIn) {
@@ -273,19 +266,19 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [isSignedIn])
 
-  useEffect(()=>{
-    if (pendingMessage.length && currentChatId && chats.length) {
-      setChats((prev) =>
-        prev.map((chat) =>
-          chat.id === currentChatId
-            ? { ...chat, messages: [...chat.messages, ...pendingMessage] }
-            : chat
-        )
-      );
-      setPendingMessage([]); 
-    }
+  // useEffect(()=>{
+  //   if (pendingMessage.length && currentChatId && chats.length) {
+  //     setChats((prev) =>
+  //       prev.map((chat) =>
+  //         chat.id === currentChatId
+  //           ? { ...chat, messages: [...chat.messages, ...pendingMessage] }
+  //           : chat
+  //       )
+  //     );
+  //     setPendingMessage([]); 
+  //   }
        
-  },[pendingMessage,currentChatId]);
+  // },[pendingMessage,currentChatId,chats.length]);
 
   /**
    * Creates a new chat session
@@ -311,7 +304,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
     setChats((prev) => [newChat as Chat, ...prev])
     setCurrentChatId(newChat.id)
-    console.log("current chat_id ", currentChatId)
 
     // Save to database for authenticated users
     if (isSignedIn && userId) {
@@ -345,8 +337,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * @param id - The unique identifier of the chat to select
    */
   const selectChat = (id: string) => {
-    console.log('Selecting chat with id:', id)
-    console.log('Available chats:', chats.map(c => ({ id: c.id, title: c.title })))
     setCurrentChatId(id)
   }
 
@@ -358,15 +348,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * @param id - The unique identifier of the chat to delete
    */
   const deleteChat = (id: string) => {
-    console.log('Deleting chat with id:', id)
-    console.log('Current chats before deletion:', chats.map(c => ({ id: c.id, title: c.title })))
-    
     // Find the chat to delete before removing it from state
     const chatToDelete = chats.find(chat => chat.id === id)
-    
     setChats((prev) => {
       const newChats = prev.filter((chat) => chat.id !== id)
-      console.log('Chats after deletion:', newChats.map(c => ({ id: c.id, title: c.title })))
       // If we're deleting the current chat, select the first chat in the list
       if (currentChatId === id && newChats.length > 0) {
         setCurrentChatId(newChats[0].id)
@@ -403,7 +388,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * @param messageType - Optional type of message ("code" or "chat")
    * @returns The unique ID of the created message
    */
-  const addMessage = (content: string, role: "user" | "assistant", uploads: { url: string, mimeType: string, uuid: string }[] = [], messageType: "code" | "chat" = "chat") => {
+  const addMessage = (content: string, role: "user" | "assistant", uploads: { url: string, mimeType: string, uuid: string, name:string }[] = []) => {
     const messageId = uuidv4()
     const newMessage: Message = {
       id: messageId,
@@ -413,14 +398,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       timestamp: new Date(),
     }
 
-    // if(!chats.length)
-    // {
-    //   setPendingMessage(prev => [...prev, newMessage]);
-    //   return messageId;
-    // }
-    console.log(role)
-    console.log(content)
-    console.log(currentChatId)
+
    
     setChats((prev) =>
       prev.map((chat) =>
@@ -449,8 +427,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
    * @param content - The new content for the message
    */
   const setMessage = (messageId: string, content: string) => {
-    console.log("assistant adding-",content)
-    console.log("currentChatId:",currentChatId)
     setChats((prev) =>
       prev.map((chat) =>
         chat.id === currentChatId

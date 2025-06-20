@@ -2,7 +2,7 @@ export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  uploads: { url: string, mimeType: string, uuid: string }[];
+  uploads: { url: string, mimeType: string, uuid: string, name:string }[];
   timestamp: Date;
   messageType?: 'code' | 'chat';
 }

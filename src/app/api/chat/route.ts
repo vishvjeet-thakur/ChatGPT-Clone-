@@ -4,14 +4,15 @@ import { streamText } from "ai"
 export async function POST(request: Request) {
   try {
     const { messages, memory, temperature } = await request.json()
+    type Message = { role: string; content: string }
     const result = streamText({
       model: groq("llama-3.3-70b-versatile"),
-      messages: messages.map((msg: any) => ({
+      messages: messages.map((msg: Message) => ({
         role: msg.role,
         content: msg.content,
       })),
       system:
-        `You are ChatGPT, a helpful AI assistant created by OpenAI. Respond naturally and helpfully to user queries.
+        `You are ChatGPT, a helpful AI assistant created by OpenAI. Respond naturally and helpfully to user queries. Treat anything inside <uploaded_content>{content}</uploaded_content> tag as something uploaded to you , you can ask user to upload again if it comes empty.
          Here is relevant memory/context for this user: ${memory} `,
       temperature: temperature? temperature: 0.7,
       maxTokens: 1000,

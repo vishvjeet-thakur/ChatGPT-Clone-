@@ -2,17 +2,16 @@
 
 import type React from "react"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect} from "react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from "@/components/chat-provider"
-import { ChartSpline, PanelLeft } from "lucide-react"
+import { PanelLeft } from "lucide-react"
 import { Message as MessageComponent } from "@/components/message"
 import { Message } from "@/types/chat"
 import { CodeEditor } from "./code-editor"
 import { ChatInput } from "@/components/chat-input"
 import {
-  ClerkProvider,
   SignInButton,
   SignUpButton,
   SignedIn,
@@ -81,13 +80,13 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
   const currentChat = getCurrentChat()
   const messages = currentChat?.messages || []
   const optimizedMessages = getOptimizedMessages()
-  const [pendingMessage,setPendingMessage]= useState<string>("")
+  const [pendingMessage,setPendingMessage]= useState<{text:string,upload:{url:string,mimeType:string,uuid:string, name:string}[]}>({text:"",upload:[]})
   
   useEffect(()=>{
-    if((pendingMessage!="" || uploadedFiles.length>0) && currentChatId!=null)
+    if((pendingMessage.text!="" || pendingMessage.upload.length>0) && currentChatId!=null)
     { 
-      handleSubmit(pendingMessage);
-      setPendingMessage("");
+      handleSubmit(pendingMessage.text,pendingMessage.upload);
+      setPendingMessage({text:"",upload:[]});
     }
   },[currentChatId,currentChat])
 
@@ -119,16 +118,17 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
    * 
    * @param userMessage - The user's input text
    */
-  const handleSubmit = async (userMessage: string) => {
+  const handleSubmit = async (userMessage: string,uploads:{url:string,mimeType:string,uuid:string,name:string}[]=[]) => {
     if (!userMessage.trim() && uploadedFiles.length === 0) return
     setIsLoading(true)
     if (!currentChatId || !currentChat) {
       await createNewChat()
-      setPendingMessage(userMessage)
+      setPendingMessage({text:userMessage,upload:uploadedFiles})
+      setUploadedFiles([])
       return;
     }
   
-    const final_uploaded_files = uploadedFiles
+    const final_uploaded_files = uploadedFiles.length?uploadedFiles:uploads
     setUploadedFiles([])
    
     // Process uploaded files for AI analysis
@@ -173,7 +173,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
 
   
     // Add user message to chat
-    const userMessageId = addMessage(uploaded_content + userMessage, "user", final_uploaded_files)
+    addMessage(uploaded_content + userMessage, "user", final_uploaded_files)
     const assistantMessageId = addMessage("", "assistant")
 
     let memory=""
@@ -249,7 +249,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
      
   
       // Add to memory and generate title in parallel (if needed)
-      const parallelTasks: Promise<any>[] = [];
+      const parallelTasks: Promise<unknown>[] = [];
       if(userId && assistantMessage && userMessage) {
         const memoryPromise = fetch('api/memory', {
           method: 'POST',
@@ -329,7 +329,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     if (!editingCode) return
 
     // Add the code as a user message with special formatting
-    const userMessageId = addMessage(`\`\`\`${editingCode.language}\n${code}\n\`\`\``, "user", [], "code")
+    addMessage(`\${editingCode.language}\n${code}\n\`, "user", [], "code")
     const assistantMessageId = addMessage("", "assistant")
     setIsLoading(true)
     
@@ -419,7 +419,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
         <div className={`flex-1 flex flex-col justify-center ${isEditorOpen ? "mr-10" : "w-full"} h-full px-4`}>
           <div className={`text-center ${isEditorOpen ? "" : "w-full max-w-3xl mx-auto"}`}>
             <h2 className={`text-3xl ${isEditorOpen ? "w-1/2" : ""} font-semibold text-white mb-6`}>
-              What's today's agenda?
+              What&apos;s today&apos;s agenda?
             </h2>
             <ChatInput
               isLoading={isLoading}
