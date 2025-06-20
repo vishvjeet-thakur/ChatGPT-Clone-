@@ -122,8 +122,9 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     if (!userMessage.trim() && uploadedFiles.length === 0) return
     setIsLoading(true)
     if (!currentChatId || !currentChat) {
-      await createNewChat()
       setPendingMessage({text:userMessage,upload:uploadedFiles})
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await createNewChat()
       setUploadedFiles([])
       return;
     }
