@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
-import { Send, Loader2, Plus, X } from "lucide-react"
+import { Send, Loader2, Plus, X, ArrowUp } from "lucide-react"
 import { useChat } from "@/components/chat-provider"
 import { VoiceRecorder } from "@/components/voice-recorder"
 import { uploadFile } from "@uploadcare/upload-client"
@@ -332,7 +332,7 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
               disabled={(!input.trim() && uploadedFiles.length == 0) || isLoading || isTranscribing || isRecording}
               className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
             >
-              {isLoading || isTranscribing || isRecording ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              {isLoading || isTranscribing || isRecording ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
             </Button>
           </div>
         </div>

@@ -153,12 +153,12 @@ export function VoiceRecorder({ onRecordingComplete, onCancel }: VoiceRecorderPr
           type="button"
           size="sm"
           onClick={startRecording}
-          className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
+          className="h-8 w-8 p-0 bg-transparent hover:bg-[rgb(84,80,80)] text-white rounded-full"
         >
-          <Mic size={16} />
+          <Mic size={17} />
         </Button>
       ) : (
-        <>
+        <>  
           <Button
             type="button"
             size="sm"

@@ -232,7 +232,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-600"
+                                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-600"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreHorizontal size={12} />
