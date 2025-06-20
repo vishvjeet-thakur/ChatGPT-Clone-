@@ -458,9 +458,10 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
               size="sm"
               onClick={copyToClipboard}
               className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700"
-            >
-              <Copy size={12} className="md:w-3.5 md:h-3.5" />
-              {copied ? "Copied!" : ""}
+            > 
+              {copied?<Check size={12} className="md:w-3.5 md:h-3.5 "/> : <Copy size={12} className="md:w-3.5 md:h-3.5 " />}
+              
+              
             </Button>
             <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
               <ThumbsUp size={12} className="md:w-3.5 md:h-3.5" />
