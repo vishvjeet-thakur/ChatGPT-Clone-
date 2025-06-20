@@ -84,10 +84,8 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
   const [pendingMessage,setPendingMessage]= useState<string>("")
   
   useEffect(()=>{
-    console.log("uploaded files",uploadedFiles)
-    console.log("length",uploadedFiles.length)
     if((pendingMessage!="" || uploadedFiles.length>0) && currentChatId!=null)
-    { console.log("currentchat id changed")
+    { 
       handleSubmit(pendingMessage);
       setPendingMessage("");
     }
@@ -108,11 +106,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
    * Create a new chat if none exists
    * Ensures users always have a chat to work with
    */
-  // useEffect(() => {
-  //   if (!currentChat) {
-  //     createNewChat()
-  //   }
-  // }, [])
+
 
   /**
    * Handles form submission for new messages
@@ -126,11 +120,9 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
    * @param userMessage - The user's input text
    */
   const handleSubmit = async (userMessage: string) => {
-    console.log(userMessage)
     if (!userMessage.trim() && uploadedFiles.length === 0) return
     setIsLoading(true)
     if (!currentChatId || !currentChat) {
-      console.log("inside submit",uploadedFiles)
       await createNewChat()
       setPendingMessage(userMessage)
       return;
@@ -183,7 +175,6 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     // Add user message to chat
     const userMessageId = addMessage(uploaded_content + userMessage, "user", final_uploaded_files)
     const assistantMessageId = addMessage("", "assistant")
-    console.log("assistnt id:",assistantMessageId)
 
     let memory=""
     if(userId)
@@ -205,7 +196,6 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
           memory+=mem.memory
       })
     }
-      console.log("memory fetched:",memory)
       }
   
     try {
@@ -255,20 +245,6 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
         {"role":"user" as const,'content':uploaded_content+userMessage},
         {"role":"assistant" as const,'content':assistantMessage}
       ]
-      
-      // if(userId && assistantMessage && userMessage)
-      //   {
-      //   const memory_response = await fetch('api/memory',{
-      //     method:'POST',
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     body: JSON.stringify({
-      //      interaction,userId
-      //     }),
-      //   })
-      //   const memory_added = await memory_response.json();
-      //   }
       
      
   

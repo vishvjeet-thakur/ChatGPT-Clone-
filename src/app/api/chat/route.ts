@@ -4,9 +4,6 @@ import { streamText } from "ai"
 export async function POST(request: Request) {
   try {
     const { messages, memory, temperature } = await request.json()
-    console.log("Messages:", messages)
-    console.log("Memory:",memory)
-
     const result = streamText({
       model: groq("llama-3.3-70b-versatile"),
       messages: messages.map((msg: any) => ({

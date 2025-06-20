@@ -73,8 +73,6 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
   }
 
   const handleEditSend = async () => {
-
-    console.log("message editing:",message.content)
     setIsEditing(false)
     // Remove all messages from this message downwards
     const chat = getCurrentChat && getCurrentChat()

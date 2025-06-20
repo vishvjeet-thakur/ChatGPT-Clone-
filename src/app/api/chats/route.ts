@@ -61,7 +61,6 @@ export async function PUT(req: Request) {
     );
 
     if (!chat) {
-      console.log("chat NOt found-",chatId)
       return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
     }
 
