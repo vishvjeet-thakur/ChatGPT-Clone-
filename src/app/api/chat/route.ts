@@ -3,7 +3,7 @@ import { streamText } from "ai"
 
 export async function POST(request: Request) {
   try {
-    const { messages, memory } = await request.json()
+    const { messages, memory, temperature } = await request.json()
     console.log("Messages:", messages)
     console.log("Memory:",memory)
 
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       system:
         `You are ChatGPT, a helpful AI assistant created by OpenAI. Respond naturally and helpfully to user queries.
          Here is relevant memory/context for this user: ${memory} `,
-      temperature: 0.7,
+      temperature: temperature? temperature: 0.7,
       maxTokens: 1000,
     })
     

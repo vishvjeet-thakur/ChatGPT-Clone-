@@ -34,9 +34,10 @@ interface MessageProps {
 export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, handleSubmit }: MessageProps) {
   const [copied, setCopied] = useState(false)
   const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string } | null>(null)
-  const { setMessage ,isEditorOpen ,setIsEditorOpen , editingCode, setEditingCode, addMessage, getCurrentChat, chats, currentChatId, setChats } = useChat()
+  const { setMessage ,isEditorOpen ,setIsEditorOpen , editingCode, setEditingCode, addMessage, getCurrentChat, chats, currentChatId, setChats, userId, getOptimizedMessages } = useChat()
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(message.content)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const message_to_be_shown = message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()
 
   // Find the assistant message that follows this user message
@@ -90,6 +91,70 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
     if (handleSubmit) {
       handleSubmit(editValue)
     }
+  }
+
+  // Regenerate handler for assistant messages
+  const handleRegenerate = async () => {
+    setIsRegenerating(true)
+    const chat = getCurrentChat && getCurrentChat()
+    if (!chat) return setIsRegenerating(false)
+    const idx = chat.messages.findIndex(m => m.id === message.id)
+    if (idx === -1) return setIsRegenerating(false)
+    // Find the previous user message
+    let userMsg = null
+    for (let i = idx - 1; i >= 0; i--) {
+      if (chat.messages[i].role === 'user') {
+        userMsg = chat.messages[i]
+        break
+      }
+    }
+    if (!userMsg) return setIsRegenerating(false)
+    // Prepare context: all messages up to and including the current assistant message
+    const contextMessages = chat.messages.slice(0, idx )
+    // Optionally, tweak temperature or other params
+    let memory = ""
+    if (userId) {
+      try {
+        const response = await fetch('/api/memory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: userMsg.content, userId })
+        })
+        const memory_response = await response.json()
+        if (Array.isArray(memory_response)) {
+          memory_response.forEach((mem: any) => { memory += mem.memory })
+        }
+      } catch (e) { /* ignore */ }
+    }
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: contextMessages.map(m => ({ role: m.role, content: m.content })),
+          memory,
+          temperature: 0.9 // slightly higher for more variety
+        })
+      })
+      if (!response.ok) throw new Error('Failed to regenerate')
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let assistantMessage = ""
+      setMessage(message.id,"")
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          const chunk = decoder.decode(value, { stream: true })
+          assistantMessage += chunk
+          setMessage(message.id, assistantMessage)
+        }
+      }
+      if (!assistantMessage) setMessage(message.id, "I apologize, but I encountered an error processing your request.")
+    } catch (e) {
+      setMessage(message.id, "I apologize, but I encountered an error processing your request. Please try again.")
+    }
+    setIsRegenerating(false)
   }
 
   const components: Components = {
@@ -386,7 +451,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
           )}
         </div>
 
-        {message.role === "assistant" && !isLoading && (
+        {message.role === "assistant" && (!isLoading || isRegenerating) && (
           <div className="flex items-center gap-1 md:gap-2 mt-2">
             <Button
               variant="ghost"
@@ -403,8 +468,14 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
             <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
               <ThumbsDown size={12} className="md:w-3.5 md:h-3.5" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
-              <RotateCcw size={12} className="md:w-3.5 md:h-3.5" />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRegenerate}
+              disabled={isRegenerating}
+              className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700"
+            >
+              <RotateCcw size={12} className={`md:w-3.5 md:h-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         )}
