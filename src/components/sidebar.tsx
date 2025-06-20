@@ -130,6 +130,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <Button
                 onClick={createNewChat}
                 className="w-full bg-transparent hover:bg-gray-700 text-white justify-start gap-3 h-10 px-3 border-0"
+                aria-label="New chat"
               >
                 <PenSquare size={16} className="text-white" />
                 <span className="text-white">New chat</span>
@@ -139,6 +140,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 variant="ghost"
                 onClick={() => setIsSearchOpen(true)}
                 className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+                aria-label="Search chats"
               >
                 <Search size={16} className="text-gray-300" />
                 <span className="text-gray-300">Search chats</span>
@@ -147,6 +149,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <Button
                 variant="ghost"
                 className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+                aria-label="Library"
               >
                 <BookOpen size={16} className="text-gray-300" />
                 <span className="text-gray-300">Library</span>
@@ -158,6 +161,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <Button
                 variant="ghost"
                 className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+                aria-label="Sora"
               >
                 <Play size={16} className="text-gray-300" />
                 <span className="text-gray-300">Sora</span>
@@ -166,6 +170,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <Button
                 variant="ghost"
                 className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+                aria-label="GPTs"
               >
                 <Grid3X3 size={16} className="text-gray-300" />
                 <span className="text-gray-300">GPTs</span>
@@ -183,88 +188,91 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 ) : chats.length === 0 ? (
                   <div className="text-gray-500 text-sm py-4 text-center">No chats yet</div>
                 ) : (
-                  <div className="space-y-1">
-                    {chats.map((chat) => (
-                      <div
-                        key={chat.id}
-                        className={`group flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-gray-700 ${
-                          currentChatId === chat.id ? "bg-gray-700" : ""
-                        }`}
-                        onClick={() => selectChat(chat.id)}
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          {editingId === chat.id ? (
-                            <div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
-                              <Input
-                                ref={inputRef}
-                                value={editingTitle}
-                                onChange={(e) => setEditingTitle(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="h-6 text-sm bg-gray-800 border-gray-700 text-white focus:ring-0 focus-visible:ring-0"
-                              />
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 text-green-400 hover:text-green-300 hover:bg-gray-600"
-                                onClick={handleSaveRename}
-                              >
-                                <Check size={14} />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-gray-600"
-                                onClick={handleCancelRename}
-                              >
-                                <X size={14} />
-                              </Button>
-                            </div>
-                          ) : (
-                            <span className="truncate text-gray-200 max-w-[180px]">
-                              {chat.title}
-                            </span>
-                          )}
-                        </div>
+                  <nav role="navigation" aria-label="Chat history sidebar">
+                    <div className="space-y-1">
+                      {chats.map((chat) => (
+                        <div
+                          key={chat.id}
+                          className={`group flex items-center justify-between rounded-lg px-3 py-2 text-sm cursor-pointer hover:bg-gray-700 ${
+                            currentChatId === chat.id ? "bg-gray-700" : ""
+                          }`}
+                          onClick={() => selectChat(chat.id)}
+                          aria-current={currentChatId === chat.id ? "page" : undefined}
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {editingId === chat.id ? (
+                              <div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
+                                <Input
+                                  ref={inputRef}
+                                  value={editingTitle}
+                                  onChange={(e) => setEditingTitle(e.target.value)}
+                                  onKeyDown={handleKeyDown}
+                                  className="h-6 text-sm bg-gray-800 border-gray-700 text-white focus:ring-0 focus-visible:ring-0"
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 text-green-400 hover:text-green-300 hover:bg-gray-600"
+                                  onClick={handleSaveRename}
+                                >
+                                  <Check size={14} />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 text-red-400 hover:text-red-300 hover:bg-gray-600"
+                                  onClick={handleCancelRename}
+                                >
+                                  <X size={14} />
+                                </Button>
+                              </div>
+                            ) : (
+                              <span className="truncate text-gray-200 max-w-[180px]">
+                                {chat.title}
+                              </span>
+                            )}
+                          </div>
 
-                        <div className="flex-shrink-0">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-600"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <MoreHorizontal size={12} />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-32 bg-gray-800 border-gray-600">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRename(chat.id);
-                                }}
-                                className="text-gray-200 focus:bg-gray-700 focus:text-white"
-                              >
-                                <Edit3 size={12} className="mr-2" />
-                                Rename
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteChat(chat.id);
-                                }}
-                                className="text-red-400 focus:bg-red-600 focus:text-white"
-                              >
-                                <Trash2 size={12} className="mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="flex-shrink-0">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 h-6 w-6 p-0 text-gray-400 hover:text-white hover:bg-gray-600"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MoreHorizontal size={12} />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-32 bg-gray-800 border-gray-600">
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRename(chat.id);
+                                  }}
+                                  className="text-gray-200 focus:bg-gray-700 focus:text-white"
+                                >
+                                  <Edit3 size={12} className="mr-2" />
+                                  Rename
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteChat(chat.id);
+                                  }}
+                                  className="text-red-400 focus:bg-red-600 focus:text-white"
+                                >
+                                  <Trash2 size={12} className="mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </nav>
                 )}
               </div>
             </div>
@@ -276,6 +284,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <Button
             variant="ghost"
             className="w-full text-gray-300 hover:bg-gray-700 hover:text-white justify-start gap-3 h-10 px-3"
+            aria-label="Upgrade plan"
           >
             <Crown size={16} className="text-gray-300" />
             <div className="flex flex-col items-start">

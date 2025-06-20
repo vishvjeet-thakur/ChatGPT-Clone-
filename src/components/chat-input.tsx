@@ -299,6 +299,7 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
               className="w-full resize-none bg-gray-800 text-white placeholder:text-gray-400 border-none focus:outline-none focus:ring-0 focus:border-none"
               style={{ minHeight: "40px", maxHeight: "200px", backgroundColor: "rgb(49,48,49)" }}
               disabled={isLoading || isTranscribing}
+              aria-label="Chat message input"
             />
           ) : (
             // Audio waveform display during recording
@@ -331,6 +332,7 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
               size="sm"
               disabled={(!input.trim() && uploadedFiles.length == 0) || isLoading || isTranscribing || isRecording}
               className="h-8 w-8 p-0 bg-gray-100 hover:bg-gray-200 text-gray-900 rounded-full"
+              aria-label="Send message"
             >
               {isLoading || isTranscribing || isRecording ? <Loader2 size={16} className="animate-spin" /> : <ArrowUp size={16} />}
             </Button>

@@ -412,7 +412,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
               </div>
             </div>
           ) : (
-            <div className="prose prose-neutral dark:prose-invert max-w-none text-sm md:text-base">
+            <div className="prose prose-neutral dark:prose-invert max-w-none text-sm md:text-base" aria-live={message.role === "assistant" ? "polite" : undefined}>
               <ReactMarkdown
                 remarkPlugins={[[remarkGfm, { breaks: true }]]}
                 rehypePlugins={[
@@ -433,6 +433,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
                 variant="ghost"
                 size="sm"
                 onClick={copyToClipboard}
+                aria-label="Copy message"
                 className="h-7 w-7 md:h-8 md:w-8 p-0 text-white hover:text-white hover:bg-gray-700"
               >
                 <Copy size={14} className="text-white" />
@@ -442,6 +443,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
                   variant="ghost"
                   size="sm"
                   onClick={handleEditClick}
+                  aria-label="Edit message"
                   className="h-7 w-7 md:h-8 md:w-8 p-0 text-white hover:text-white hover:bg-gray-700"
                 >
                   <Edit size={14} className="text-white" />
@@ -457,22 +459,24 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
               variant="ghost"
               size="sm"
               onClick={copyToClipboard}
+              aria-label="Copy message"
               className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700"
             > 
               {copied?<Check size={12} className="md:w-3.5 md:h-3.5 "/> : <Copy size={12} className="md:w-3.5 md:h-3.5 " />}
               
               
             </Button>
-            <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
+            <Button variant="ghost" size="sm" aria-label="Thumbs up" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
               <ThumbsUp size={12} className="md:w-3.5 md:h-3.5" />
             </Button>
-            <Button variant="ghost" size="sm" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
+            <Button variant="ghost" size="sm" aria-label="Thumbs down" className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700">
               <ThumbsDown size={12} className="md:w-3.5 md:h-3.5" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleRegenerate}
+              aria-label="Regenerate response"
               disabled={isRegenerating}
               className="h-7 w-7 md:h-8 md:w-8 p-0 text-gray-400 hover:text-gray-200 hover:bg-gray-700"
             >
