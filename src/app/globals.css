@@ -12,11 +12,9 @@
 }
 
 code::before,
-code::after{
+code::after {
   content: none !important;
 }
-
-
 
 /* CSS Variables */
 :root {
@@ -65,11 +63,15 @@ code::after{
 }
 
 /* Base styles */
-body {
+body,
+html {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family:  ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica, Apple Color Emoji, Arial, sans-serif, Segoe UI Emoji, Segoe UI Symbol;
-  line-height: 1.5;
+  font-family: ui-sans-serif, -apple-system, system-ui, Segoe UI, Helvetica,
+    Apple Color Emoji, Arial, sans-serif, Segoe UI Emoji, Segoe UI Symbol;
+  line-height: 1.75;
+  word-spacing: 0.08em;
+  font-size: 16px;
 }
 
 /* Border styles */
