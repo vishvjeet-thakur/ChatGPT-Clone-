@@ -137,6 +137,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
           setMessage(message.id, assistantMessage)
         }
       }
+      console.log("assistant message-", assistantMessage)
       if (!assistantMessage) setMessage(message.id, "I apologize, but I encountered an error processing your request.")
     } catch (e) {
       setMessage(message.id, "I apologize, but I encountered an error processing your request. Please try again.")
@@ -216,7 +217,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
           </div>
 
           {/* Code Block */}
-          <pre className="overflow-x-auto text-xs md:text-sm text-white m-0 p-0 w-full">
+          <pre className="overflow-x-auto text-[14px] !leading-[21px] md:text-sm text-white m-0 p-0 w-full">
             <code className={`${className} block w-full break-words whitespace-pre-wrap ${!match ? "px-3 md:px-4 py-2" : ""}`} {...props}>
               {children}
             </code>
@@ -250,16 +251,19 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
       );
     },
     p(props) {
-      return <p className="whitespace-pre-wrap my-2" {...props} />;
+      return <p className="whitespace-pre-wrap my-2 font-[400] !text-[16px] !leading-[28px] prose-code:!font-[500] prose-code:leading-[25px]" {...props} />;
+    },
+    hr(props){
+       return <hr className=" border-t  border-[#ffffff0f] "  {...props}/>
     },
     h1(props) {
       return <h1 className="text-3xl font-bold mt-8 mb-4" {...props} />;
     },
     h2(props) {
-      return <h2 className="text-2xl font-bold mt-7 mb-3" {...props} />;
+      return <h2 className="!text-[24px] font-[600] leading-[32px]  mt-7 mb-3" {...props} />;
     },
     h3(props) {
-      return <h3 className="text-xl font-bold mt-6 mb-3" {...props} />;
+      return <h3 className="!text-[20px] !font-[600] mt-6 mb-3 !leading-[32px]" {...props} />;
     },
     h4(props) {
       return <h4 className="text-lg font-bold mt-5 mb-2" {...props} />;
@@ -271,10 +275,10 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
       return <h6 className="text-sm font-bold mt-3 mb-2" {...props} />;
     },
     ul(props) {
-      return <ul className="list-disc pl-6 my-4" {...props} />;
+      return <ul className="list-disc  pl-6 my-4 marker:text-white prose-li:!leading-[28px] prose-li:!text-[16px] prose-code:!font-[500] prose-code:!leading-[25px]" {...props} />;
     },
     ol(props) {
-      return <ol className="list-decimal pl-6 my-4" {...props} />;
+      return <ol className="list-decimal pl-6 my-4 prose-li:!leading-[28px] prose-li:!text-[16px] prose-code:!font-[500] prose-code:!leading-[25px]" {...props} />;
     },
     blockquote(props) {
       return <blockquote className="border-l-4 border-muted pl-4 italic my-4" {...props} />;

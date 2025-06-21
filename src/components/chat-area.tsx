@@ -384,7 +384,7 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
     <div className="flex-1 flex flex-col h-full bg-white " style={{ backgroundColor: "rgb(32,32,33)" }}>
       {/* Header Section */}
       <div
-        className="border-b border-gray-600 p-4 flex items-center justify-between"
+        className=" border-gray-600 p-2 flex items-center justify-between"
         style={{ backgroundColor: "rgb(32,32,33)", borderColor: "rgb(64,64,64)" }}
       >
         <div className="flex items-center gap-3">
@@ -399,14 +399,22 @@ export function ChatArea({ sidebarOpen, onToggleSidebar }: ChatAreaProps) {
               <PanelLeft size={20} />
             </Button>
           )}
-          <h1 className="text-lg font-semibold text-white">ChatGPT</h1>
+          
         </div>
-        
+        <h1 className="text-lg font-semibold text-white">ChatGPT</h1>
         {/* Authentication Buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <SignedOut>
-            <SignInButton />
-            <SignUpButton />
+            <SignInButton mode="modal">
+            <button className="px-3 py-2 hover:bg-gray-200  bg-white text-[#0d0d0d] rounded-full  font-[500] text-sm">
+               Log in
+            </button>
+            </SignInButton>
+            <SignUpButton mode="modal" >
+         <button className="font-[500] text-sm text-white hover:bg-[#2e2f2e] bg-[#202120] rounded-full border-gray-600 border px-3 py-2 "  > 
+              Sign up for free
+          </button>
+            </SignUpButton >
           </SignedOut>
           <SignedIn>
             <UserButton />
