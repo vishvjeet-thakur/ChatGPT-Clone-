@@ -1,6 +1,6 @@
 # ChatGPT Clone
 
-A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web technologies. This application provides a complete chat experience with file uploads, voice recording, code editing, and real-time streaming responses using Groq's fast AI models.
+A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web technologies. This application provides a complete chat experience with file uploads, voice recording, code editing, real-time streaming responses using Groq's fast AI models, and intelligent memory management using Mem0 AI.
 
 ## 🚀 Features
 
@@ -24,6 +24,16 @@ A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web tec
 - **Code analysis** - Dedicated code editor with syntax highlighting
 - **Search functionality** - Search through chat history
 - **Theme support** - Dark theme optimized for coding and reading
+- **Intelligent Memory System** - Persistent memory using Mem0 AI for personalized conversations
+
+### Memory Features (Mem0 AI Integration)
+
+- **Persistent Memory** - AI remembers your preferences, past conversations, and context across sessions
+- **Smart Context Retrieval** - Automatically retrieves relevant memories based on current conversation
+- **User-Specific Memory** - Each user has their own isolated memory space
+- **Automatic Memory Storage** - Conversations are automatically stored for future reference
+- **Memory Search** - Intelligent search through past interactions for relevant context
+- **Memory Privacy** - User data is isolated and secure with proper authentication
 
 ### Technical Features
 
@@ -34,6 +44,7 @@ A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web tec
 - **Uploadcare** - Reliable file upload and CDN service
 - **Clerk** - Modern authentication solution
 - **Groq** - Fast AI inference platform
+- **Mem0 AI** - Intelligent memory management system
 
 ## Features
 
@@ -45,17 +56,49 @@ A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web tec
 - The edit feature is fully ARIA compliant, with accessible labels for all controls.
 
 ### Regenerate Assistant Response
+
 - Users can regenerate the assistant's response to any message by clicking the **Regenerate** (circular arrow) button below the assistant's message.
 - The assistant will generate a new, slightly varied response using a higher temperature for more creativity.
 - The regeneration button is ARIA compliant and accessible to screen readers.
 
 ### Accessibility (ARIA Compliance)
 
-- The application is designed to be accessible:
-  - All interactive elements (buttons, inputs, etc.) have appropriate `aria-label` attributes.
-  - Live assistant responses use `aria-live="polite"` so screen readers announce updates.
-  - Navigation and layout use ARIA landmark roles (`role="main"`, `role="navigation"`, etc.).
-  - Icon-only buttons are labeled for assistive technology.
+The application is designed with comprehensive accessibility features to ensure it's usable by everyone:
+
+#### Screen Reader Support
+
+- **Semantic HTML** - Proper use of headings, landmarks, and semantic elements
+- **ARIA Labels** - All interactive elements have descriptive `aria-label` attributes
+- **Live Regions** - Assistant responses use `aria-live="polite"` for screen reader announcements
+- **Focus Management** - Logical tab order and visible focus indicators
+- **Skip Links** - Keyboard navigation shortcuts for main content areas
+
+#### Keyboard Navigation
+
+- **Full Keyboard Support** - All features accessible via keyboard
+- **Tab Navigation** - Logical tab order through all interactive elements
+- **Keyboard Shortcuts** - Enter to send messages, Escape to cancel operations
+- **Focus Indicators** - Clear visual indicators for focused elements
+
+#### Visual Accessibility
+
+- **High Contrast** - Dark theme optimized for readability
+- **Color Independence** - Information not conveyed by color alone
+- **Text Scaling** - Responsive design supports text scaling up to 200%
+- **Clear Typography** - Readable fonts with adequate spacing
+
+#### Interactive Elements
+
+- **Button Labels** - All buttons have descriptive text or aria-labels
+- **Form Validation** - Clear error messages and validation feedback
+- **Loading States** - Accessible loading indicators and progress feedback
+- **Error Handling** - Clear error messages for all failure states
+
+#### Memory and Context Features
+
+- **Memory Status** - Screen readers announce when memory is being retrieved or stored
+- **Context Changes** - Users are notified when conversation context changes
+- **File Upload Feedback** - Clear feedback for file upload progress and status
 
 ## 🏗️ Architecture
 
@@ -65,12 +108,16 @@ A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web tec
 src/
 ├── app/                    # Next.js App Router pages
 │   ├── api/               # API routes for backend functionality
+│   │   ├── memory/        # Mem0 AI memory management
+│   │   ├── chat/          # Main chat endpoint
+│   │   ├── transcribe/    # Audio transcription
+│   │   └── process-file/  # File processing
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout with providers
 │   └── page.tsx           # Main chat interface
 ├── components/            # Reusable React components
 │   ├── ui/               # Base UI components (buttons, inputs, etc.)
-│   ├── chat-area.tsx     # Main chat interface
+│   ├── chat-area.tsx     # Main chat interface with memory integration
 │   ├── chat-input.tsx    # Input component with file upload & voice
 │   ├── message.tsx       # Individual message display
 │   ├── sidebar.tsx       # Chat history sidebar
@@ -88,6 +135,16 @@ src/
 - `/api/transcribe` - Audio transcription
 - `/api/process-file` - File content extraction
 - `/api/generate-title` - Automatic chat title generation using Groq
+- `/api/memory` - Memory management using Mem0 AI (search and store interactions)
+
+### Memory System Architecture
+
+The memory system integrates seamlessly with the chat experience:
+
+1. **Memory Retrieval** - When a user sends a message, the system queries Mem0 AI for relevant memories
+2. **Context Enhancement** - Retrieved memories are included in the AI prompt for personalized responses
+3. **Memory Storage** - After each conversation, interactions are automatically stored in Mem0 AI
+4. **User Isolation** - Each user's memories are completely isolated using unique user IDs
 
 ## 🛠️ Technology Stack
 
@@ -107,6 +164,7 @@ src/
 - **Clerk** - Authentication service
 - **Uploadcare** - File upload and CDN
 - **Groq** - Fast AI chat completions and code analysis
+- **Mem0 AI** - Intelligent memory management and context retrieval
 
 ### Development Tools
 
@@ -124,6 +182,7 @@ src/
 - Groq API key
 - Clerk account
 - Uploadcare account
+- Mem0 AI API key
 
 ### Environment Variables
 
@@ -143,6 +202,9 @@ CLERK_SECRET_KEY=your_clerk_secret_key
 # Uploadcare
 NEXT_PUBLIC_UPLOADCARE_API_KEY=your_uploadcare_public_key
 NEXT_PUBLIC_UPLOADCARE_SECRET_KEY=your_uploadcare_secret_key
+
+# Mem0 AI Memory System
+MEM0_API_KEY=your_mem0_api_key
 ```
 
 ### Installation Steps
@@ -192,6 +254,15 @@ Clerk provides authentication. Set up your Clerk application and configure the k
 
 Groq provides fast AI inference. Get your API key from [Groq Console](https://console.groq.com/) and configure it in the environment variables.
 
+### Mem0 AI Memory Setup
+
+Mem0 AI provides intelligent memory management. Get your API key from [Mem0 AI](https://mem0.ai/) and configure it in the environment variables. The memory system will automatically:
+
+- Store conversation interactions for authenticated users
+- Retrieve relevant memories based on current context
+- Provide personalized responses using historical context
+- Maintain user privacy with isolated memory spaces
+
 ## 📱 Usage
 
 ### Basic Chat
@@ -199,30 +270,42 @@ Groq provides fast AI inference. Get your API key from [Groq Console](https://co
 1. Type your message in the input field
 2. Press Enter or click the send button
 3. View the AI's streaming response powered by Groq
+4. The system automatically retrieves relevant memories for personalized responses
+
+### Memory-Enhanced Conversations
+
+- **Automatic Memory Retrieval** - The AI automatically searches your conversation history for relevant context
+- **Personalized Responses** - Responses are tailored based on your past interactions and preferences
+- **Context Continuity** - The AI remembers your preferences, coding styles, and conversation patterns
+- **Memory Privacy** - All memories are isolated to your user account and protected by authentication
 
 ### File Upload
 
 1. Click the "+" button to select files
 2. Supported formats: images, PDFs, text files
 3. Files are automatically processed and analyzed by the AI
+4. File content is included in memory for future reference
 
 ### Voice Recording
 
 1. Click the microphone button to start recording
 2. Speak your message
 3. Click stop to transcribe and send
+4. Voice interactions are stored in memory for context
 
 ### Code Editing
 
 1. Click "Edit" on any code block
 2. Modify the code in the Monaco editor
 3. Click "Save" to analyze the updated code using Groq
+4. Code preferences and patterns are remembered for future assistance
 
 ### Chat Management
 
 - Use the sidebar to switch between chats
 - Search through chat history
 - Delete or rename chats
+- Memory context is maintained across all chats
 
 ## 🏛️ Project Architecture
 
@@ -234,14 +317,26 @@ The application uses React Context for global state management through the `Chat
 - File uploads
 - Editor state
 - Authentication state
+- Memory integration state
 
 ### Data Flow
 
 1. **User Input** → ChatInput component
-2. **File Processing** → Uploadcare → AI analysis
-3. **Message Creation** → ChatProvider → Database/Local Storage
-4. **AI Response** → Groq API → Real-time display
-5. **State Updates** → React Context → UI updates
+2. **Memory Retrieval** → Mem0 AI → Relevant context
+3. **File Processing** → Uploadcare → AI analysis
+4. **Message Creation** → ChatProvider → Database/Local Storage
+5. **AI Response** → Groq API → Real-time display
+6. **Memory Storage** → Mem0 AI → Future context
+7. **State Updates** → React Context → UI updates
+
+### Memory Integration Flow
+
+```
+User Message → Memory Search → Context Enhancement → AI Response → Memory Storage
+     ↓              ↓                ↓                ↓              ↓
+  Input Text   Query Mem0 AI    Include Memory    Generate      Store Interaction
+                                    in Prompt      Response      in Mem0 AI
+```
 
 ### Component Hierarchy
 
@@ -270,6 +365,8 @@ App
 - **API rate limiting** - Protection against abuse
 - **Environment variables** - Secure configuration management
 - **CORS protection** - Cross-origin request security
+- **Memory isolation** - User-specific memory spaces with authentication
+- **Data privacy** - Secure handling of user conversations and preferences
 
 ## 🚀 Deployment
 
@@ -300,9 +397,10 @@ The application can be deployed to any platform that supports Next.js:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## �� Acknowledgments
+## 🙏 Acknowledgments
 
 - Groq for fast AI inference
+- Mem0 AI for intelligent memory management
 - Vercel for Next.js framework
 - Clerk for authentication
 - Uploadcare for file handling
@@ -319,4 +417,4 @@ For support and questions:
 
 ---
 
-**Note**: This is a demonstration project. Ensure you comply with Groq's usage policies and implement appropriate rate limiting for production use.
+**Note**: This is a demonstration project. Ensure you comply with Groq's and Mem0 AI's usage policies and implement appropriate rate limiting for production use.
