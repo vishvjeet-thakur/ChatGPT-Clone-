@@ -2,6 +2,8 @@
 
 A full-featured ChatGPT clone built with Next.js, TypeScript, and modern web technologies. This application provides a complete chat experience with file uploads, voice recording, code editing, and real-time streaming responses using Groq's fast AI models.
 
+Deployed on Vercel :  https://chatgpt-clone-five-ecru.vercel.app/
+
 ## 🚀 Features
 
 ### Core Chat Functionality
