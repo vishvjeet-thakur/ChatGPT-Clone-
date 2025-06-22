@@ -3,10 +3,8 @@
 import type React from "react"
 
 import { useState, useRef, useEffect} from "react"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useChat } from "@/components/chat-provider"
-import { PanelLeft } from "lucide-react"
 import { Message as MessageComponent } from "@/components/message"
 import { Message } from "@/types/chat"
 import { CodeEditor } from "./code-editor"
