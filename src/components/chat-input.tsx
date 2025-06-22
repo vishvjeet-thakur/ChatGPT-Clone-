@@ -209,7 +209,7 @@ export function ChatInput({ isLoading, onSubmit, onKeyDown }: ChatInputProps) {
   }
 
   return (
-    <div className={`max-w-3xl ${!isEditorOpen ? "mx-auto w-full" : "w-1/2"} pb-3`}>
+    <div className={`max-w-3xl ${!isEditorOpen ? "mx-auto w-full" : "w-1/2"} px-4`}>
       <form
         onSubmit={(e) => {
           e.preventDefault()

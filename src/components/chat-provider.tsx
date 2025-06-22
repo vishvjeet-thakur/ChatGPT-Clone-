@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useRef, useState, useEffect, type ReactNode } from "react"
-import { useAuth } from "@clerk/nextjs"
+import { useAuth  } from "@clerk/nextjs"
 import { v4 as uuidv4 } from "uuid"
 import { Chat, Message } from "@/types/chat"
 import { saveChatsToLocalStorage, loadChatsFromLocalStorage, clearLocalChats } from "@/lib/utils"
@@ -83,7 +83,7 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined)
  * @param children - React components that will have access to chat context
  */
 export function ChatProvider({ children }: { children: ReactNode }) {
-  const { userId, isSignedIn ,isLoaded } = useAuth()
+  const { userId, isSignedIn ,isLoaded  } = useAuth()
   
   // Core state
   const [chats, setChats] = useState<Chat[]>([])
