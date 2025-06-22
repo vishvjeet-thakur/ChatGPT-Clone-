@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit, Check, Send, X } from "lucide-react"
+import { Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit, Check, Send, X , Pencil } from "lucide-react"
 import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
@@ -302,10 +302,10 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
 
   return (
     <div className={`flex gap-2 md:gap-4  ${message.role === "user" ? "justify-end" : ""}`}>
-      <div className={`flex-1 ${message.role === "user" ? "order-first" : ""} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
+      <div className={`    ${message.role === "user" ? " order-first justify-self-end max-w-[80%]  " : " "} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
         {
           message.uploads.length>0 &&
-          <div className="flex justify-end ">
+          <div className="flex  justify-end ">
             {
               message.uploads.map((file, idx) => (
                 <div key={idx} className="relative group ml-2 mb-1  md:ml-3">
@@ -336,7 +336,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
             message.role === "user"
               ? message.messageType === "code"
                 ? "bg-[#1E1E1E] rounded-lg p-3 md:p-4" // Special styling for code messages
-                : "text-white ml-auto max-w-[85%] md:max-w-lg rounded-2xl md:rounded-3xl p-2 md:p-3 pl-4 md:pl-5"
+                : "text-white ml-auto  md:max-w-lg  w-fit  rounded-2xl md:rounded-3xl p-2 md:p-3 pl-4 md:pl-5"
               : "text-white p-2 md:p-3"
           }`}
           style={{
@@ -407,7 +407,8 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
               </div>
             </div>
           ) : (
-            <div className="prose prose-neutral dark:prose-invert max-w-none text-sm md:text-base" aria-live={message.role === "assistant" ? "polite" : undefined}>
+            <div className="prose prose-neutral dark:prose-invert max-w-none text-sm md:text-base " aria-live={message.role === "assistant" ? "polite" : undefined}>
+      
               <ReactMarkdown
                 remarkPlugins={[[remarkGfm, { breaks: true }]]}
                 rehypePlugins={[
@@ -419,11 +420,12 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
               >
                 {message.content.replace(/<uploaded_content>[\s\S]*?<\/uploaded_content>/, '').trim()}
               </ReactMarkdown>
+
             </div>
           )}
           {/* User message action buttons (Edit, Copy) */}
           {message.role === "user" && !isLoading && (
-            <div className="absolute right-1 -bottom-7 flex gap-2 pointer-events-auto z-10">
+            <div className="absolute  right-1 -bottom-10 flex  hover:opacity-100 opacity-100 md:opacity-0 pointer-events-auto z-10">
               <Button
                 variant="ghost"
                 size="sm"
@@ -441,7 +443,7 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
                   aria-label="Edit message"
                   className="h-7 w-7 md:h-8 md:w-8 p-0 text-white hover:text-white hover:bg-gray-700"
                 >
-                  <Edit size={14} className="text-white" />
+                  <Pencil size={14} className="text-white" />
                 </Button>
               )}
             </div>
