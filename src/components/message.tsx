@@ -301,8 +301,8 @@ export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, ha
   
 
   return (
-    <div className={`flex gap-2 md:gap-4  ${message.role === "user" ? "justify-end" : ""}`}>
-      <div className={`    ${message.role === "user" ? " order-first justify-self-end max-w-[80%]  " : " "} ${isEditorOpen ? "w-1/2" : "max-w-3xl"}`}>
+    <div className={`flex gap-2 md:gap-4  mr-5 ${message.role === "user" ? "justify-end" : ""}`}>
+      <div className={`    ${message.role === "user" ? " order-first justify-self-end max-w-[80%]  " : " "} `}>
         {
           message.uploads.length>0 &&
           <div className="flex  justify-end ">
