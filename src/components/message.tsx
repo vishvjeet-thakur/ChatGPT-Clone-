@@ -36,7 +36,7 @@ interface MessageProps {
 export function Message({ message, isLoading , onToggleSideBar , sidebarOpen, handleSubmit }: MessageProps) {
   const [copied, setCopied] = useState(false)
   const [selectedFile, setSelectedFile] = useState<{ url: string, mimeType: string } | null>(null)
-  const { setMessage ,isEditorOpen ,setIsEditorOpen , setEditingCode, getCurrentChat, currentChatId, setChats, userId } = useChat()
+  const { setMessage  ,setIsEditorOpen , setEditingCode, getCurrentChat, currentChatId, setChats, userId } = useChat()
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(message.content)
   const [isRegenerating, setIsRegenerating] = useState(false)
